@@ -30,15 +30,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
               ],
             ),
           ),
-          NewsArticleItemSmall(
-            title: Text(
-              "On Going:",
-              textScaleFactor: 1.5,
-            ),
-            content: Text(
-              "Registration",
-              textScaleFactor: 1.5,
-            ),
+          RaisedButton(
+            onPressed: getPosts,
+            child: Text("Test Network"),
           ),
         ],
       ),

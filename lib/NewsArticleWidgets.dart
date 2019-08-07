@@ -1,13 +1,17 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'utils.dart';
 
 class NewsArticleItemSmall extends StatelessWidget {
-  final Widget title;
-  final Widget content;
+  final Widget child;
   final Widget picture;
   final Function onTap;
 
-  const NewsArticleItemSmall(
-      {@required this.title, this.content, this.picture, this.onTap});
+  const NewsArticleItemSmall({@required this.child, this.picture, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -17,18 +21,17 @@ class NewsArticleItemSmall extends StatelessWidget {
         onTap: this.onTap,
         child: Container(
           height: 100.0,
-          child: Row(children: [
-            Container(
-              width: (this.picture != null ? 100.0 : 0.0),
-              child: this.picture,
-            ),
-            Expanded(
-              child: ListTile(
-                title: this.title,
-                subtitle: this.content,
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: (this.picture != null ? 100.0 : 0.0),
+                child: this.picture,
               ),
-            ),
-          ]),
+              Expanded(
+                child: this.child,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -41,9 +44,7 @@ class NewsArticleItemLarge extends StatelessWidget {
   final Function onTap;
 
   const NewsArticleItemLarge(
-      {@required this.picture,
-      @required this.child,
-      this.onTap});
+      {@required this.picture, @required this.child, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -62,19 +63,96 @@ class NewsArticleItemLarge extends StatelessWidget {
   }
 }
 
-class NewsArticlePage extends StatelessWidget {
-  final Widget title;
-  final Widget content;
+Future<List<dynamic>> getPosts() async {
+  final response = await http.get("https://jsonplaceholder.typicode.com/posts");
 
-  const NewsArticlePage({@required this.title, this.content});
+  if (response.statusCode == 200) {
+    // OK
+    List<dynamic> res = [];
+    res.addAll(json.decode(response.body));
+    return res;
+  } else {
+    throw Exception('Failed to load post');
+  }
+}
+
+class NewsArticleList extends StatefulWidget {
+  NewsArticleList({Key key}) : super(key: key);
+
+  @override
+  _NewsArticleListState createState() => _NewsArticleListState();
+}
+
+class _NewsArticleListState extends State<NewsArticleList> {
+  Future<List<dynamic>> _futurePost = getPosts();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: this.title,
-      ),
-      body: this.content,
+    return FutureBuilder<List<dynamic>>(
+      future: _futurePost,
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.active:
+          case ConnectionState.waiting:
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+            break;
+          case ConnectionState.done:
+            if (snapshot.hasError) {
+              return Text('An error occured: ${snapshot.error}');
+            } else {
+              return RefreshIndicator(
+                onRefresh: () {
+                  setState(() {
+                    _futurePost = getPosts();
+                  });
+                  return _futurePost;
+                },
+                child: ListView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    return NewsArticleItemSmall(
+                      child: ListTile(
+                        title: Text(
+                          snapshot.data[index]["title"],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          snapshot.data[index]["body"],
+                          maxLines: 3,
+                          overflow: TextOverflow.fade,
+                        ),
+                      ),
+                      picture: Hero(
+                          tag: snapshot.data[index]["id"],
+                          child: Placeholder()),
+                      onTap: () {
+                        triggerFullPage(
+                          context,
+                          Text(snapshot.data[index]["title"]),
+                          Column(
+                            children: <Widget>[
+                              Hero(
+                                  tag: snapshot.data[index]["id"],
+                                  child: Placeholder()),
+                              Text(snapshot.data[index]["body"]),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  itemCount: snapshot.data.length,
+                ),
+              );
+            }
+            break;
+        }
+
+        return null;
+      },
     );
   }
 }
