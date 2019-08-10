@@ -10,6 +10,17 @@ class ScheduleWidget extends StatefulWidget {
 class _ScheduleWidgetState extends State<ScheduleWidget> {
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text("Schedule goes here!"),);
+    return Container(
+      margin: EdgeInsets.all(10.0),
+
+      // TODO: Waiting for design team
+      child: Text(
+        "Schedule",
+        style: Theme
+            .of(context)
+            .textTheme
+            .display1,
+      ),
+    );
   }
 }

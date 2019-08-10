@@ -27,15 +27,27 @@ void triggerFullPage(BuildContext context, Widget title, Widget child) {
               )));
 }
 
+void triggerBottomSheet(BuildContext context, Widget child) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return child;
+    },
+    elevation: 5.0,
+  );
+}
 
-    /*
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[Text("Test")],
-        );
-      },
-    );
-    */
+void triggerAlert(BuildContext context, Widget title, Widget child,
+    List<Widget> actions) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: title,
+        content: child,
+        elevation: 10.0,
+        actions: actions,
+      );
+    },
+  );
+}

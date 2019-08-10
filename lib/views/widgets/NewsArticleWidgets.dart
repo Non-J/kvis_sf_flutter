@@ -4,14 +4,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'utils.dart';
+import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
+import 'package:kvis_sf/models/NewsList.dart';
 
 class NewsArticleItemSmall extends StatelessWidget {
   final Widget child;
   final Widget picture;
   final Function onTap;
+  final double height;
+  final double pictureWidth;
 
-  const NewsArticleItemSmall({@required this.child, this.picture, this.onTap});
+  const NewsArticleItemSmall({@required this.child,
+    this.picture,
+    this.onTap,
+    this.height = 100.0,
+    this.pictureWidth = 100.0});
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +27,11 @@ class NewsArticleItemSmall extends StatelessWidget {
       child: InkWell(
         onTap: this.onTap,
         child: Container(
-          height: 100.0,
+          height: this.height,
           child: Row(
             children: <Widget>[
               Container(
-                width: (this.picture != null ? 100.0 : 0.0),
+                width: (this.picture != null ? this.pictureWidth : 0.0),
                 child: this.picture,
               ),
               Expanded(
@@ -54,25 +61,15 @@ class NewsArticleItemLarge extends StatelessWidget {
         onTap: this.onTap,
         child: Container(
           child: Column(children: [
-            this.picture,
+            AspectRatio(
+              aspectRatio: 1.0,
+              child: this.picture,
+            ),
             this.child,
           ]),
         ),
       ),
     );
-  }
-}
-
-Future<List<dynamic>> getPosts() async {
-  final response = await http.get("https://jsonplaceholder.typicode.com/posts");
-
-  if (response.statusCode == 200) {
-    // OK
-    List<dynamic> res = [];
-    res.addAll(json.decode(response.body));
-    return res;
-  } else {
-    throw Exception('Failed to load post');
   }
 }
 
@@ -84,11 +81,34 @@ class NewsArticleList extends StatefulWidget {
 }
 
 class _NewsArticleListState extends State<NewsArticleList> {
-  Future<List<dynamic>> _futurePost = getPosts();
+  Future<List<NewsArticle>> _futurePost =
+  getNewsArticles("https://jsonplaceholder.typicode.com/posts?userId=2");
+
+  Future _refreshArticles() {
+    setState(() {
+      _futurePost = getNewsArticles(
+          "https://jsonplaceholder.typicode.com/posts?userId=2");
+    });
+    return _futurePost;
+  }
+
+  void _openArticlePlaintext(BuildContext context, String title, Widget body,
+      {Widget hero}) {
+    triggerFullPage(
+      context,
+      Text(title),
+      Column(
+        children: <Widget>[
+          hero,
+          body,
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
+    return FutureBuilder<List<NewsArticle>>(
       future: _futurePost,
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
@@ -99,52 +119,61 @@ class _NewsArticleListState extends State<NewsArticleList> {
               child: CircularProgressIndicator(),
             );
             break;
+
           case ConnectionState.done:
             if (snapshot.hasError) {
               return Text('An error occured: ${snapshot.error}');
             } else {
               return RefreshIndicator(
-                onRefresh: () {
-                  setState(() {
-                    _futurePost = getPosts();
-                  });
-                  return _futurePost;
-                },
+                onRefresh: _refreshArticles,
                 child: ListView.builder(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  itemCount: snapshot.data.length,
                   itemBuilder: (BuildContext context, int index) {
                     return NewsArticleItemSmall(
                       child: ListTile(
                         title: Text(
-                          snapshot.data[index]["title"],
+                          snapshot.data[index].title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .title,
                         ),
                         subtitle: Text(
-                          snapshot.data[index]["body"],
+                          snapshot.data[index].content,
                           maxLines: 3,
                           overflow: TextOverflow.fade,
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .body2,
                         ),
                       ),
                       picture: Hero(
-                          tag: snapshot.data[index]["id"],
-                          child: Placeholder()),
+                          tag: snapshot.data[index].id, child: Placeholder()),
                       onTap: () {
-                        triggerFullPage(
-                          context,
-                          Text(snapshot.data[index]["title"]),
-                          Column(
-                            children: <Widget>[
-                              Hero(
-                                  tag: snapshot.data[index]["id"],
-                                  child: Placeholder()),
-                              Text(snapshot.data[index]["body"]),
-                            ],
-                          ),
-                        );
+                        if (snapshot.data[index].openMode ==
+                            OpenMode.plaintext) {
+                          _openArticlePlaintext(
+                              context,
+                              snapshot.data[index].title,
+                              Container(
+                                padding: EdgeInsets.all(10.0),
+                                child: Text(
+                                  snapshot.data[index].content,
+                                  style: Theme
+                                      .of(context)
+                                      .textTheme
+                                      .body1,
+                                ),
+                              ),
+                              hero: Placeholder());
+                        }
                       },
                     );
                   },
-                  itemCount: snapshot.data.length,
                 ),
               );
             }

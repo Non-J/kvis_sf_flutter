@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'NewsArticleWidgets.dart';
-import 'utils.dart';
+import 'package:kvis_sf/views/widgets/NewsArticleWidgets.dart';
 
 class NewsWidget extends StatefulWidget {
   NewsWidget({Key key}) : super(key: key);
