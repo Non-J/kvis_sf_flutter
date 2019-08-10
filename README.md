@@ -1,16 +1,7 @@
-# kvis_sf
+# KVIS Science Fair Application
 
-KVIS Science Fair Application
+Kamnoetvidya Science Academy's Science Fair is an event held annually since 2018. This is a native companion app built for the 3rd KVIS Science Fair, which is also the venue for the 16th International Student Science Fair held in January of 2020.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This app is made using [Flutter](https://flutter.dev), it is merely a piece of a bigger system that also includes a backend and a web-based frontend.
+- [Backend is at https://github.com/vzsky/ISSF-Back](https://github.com/vzsky/ISSF-Back)
+- [Web-based Frontend is at https://github.com/itzmeowww/ISSF-2020-WEB]( https://github.com/itzmeowww/ISSF-2020-WEB)
