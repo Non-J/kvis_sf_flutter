@@ -8,6 +8,8 @@ import 'package:kvis_sf/views/AccountPage.dart';
 class PrimaryHomepage extends StatefulWidget {
   PrimaryHomepage({Key key}) : super(key: key);
 
+  final PageController pageController = PageController();
+
   final List<BottomNavigationBarItem> navigationBarChildren = [
     BottomNavigationBarItem(
         icon: new Icon(Icons.dashboard), title: new Text("Dashboard")),
@@ -31,11 +33,11 @@ class PrimaryHomepage extends StatefulWidget {
 }
 
 class _PrimaryHomepageState extends State<PrimaryHomepage> {
-  final controller = PageController();
+  // TODO: Remove globalstate page persistence hack
   int _pageNumber = 0;
 
   void _goToPage(int index) {
-    controller.animateToPage(index,
+    widget.pageController.animateToPage(index,
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutCubic);
   }
@@ -59,7 +61,7 @@ class _PrimaryHomepageState extends State<PrimaryHomepage> {
             ),
             Expanded(
               child: PageView(
-                  controller: controller,
+                  controller: widget.pageController,
                   onPageChanged: _changedPage,
                   children: widget.children),
             )

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-
-import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
+import 'package:kvis_sf/models/GlobalState.dart';
+import 'package:kvis_sf/models/AuthenticationSystem.dart';
 
 class AccountWidget extends StatefulWidget {
   AccountWidget({Key key}) : super(key: key);
@@ -29,14 +28,16 @@ class _AccountWidgetState extends State<AccountWidget> {
           ),
           RaisedButton(
             onPressed: () {
-              FirebaseAuth.instance.signOut();
+              analytics.logEvent(name: "logout");
+              AuthSystem.instance.signOut();
             },
             child: Text("Logout"),
             padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
             elevation: 5.0,
             color: Colors.blueAccent,
             textColor: Colors.white,
-          )
+          ),
+          Text("Logged in as ${AuthSystem.instance.username}"),
         ],
       ),
     );

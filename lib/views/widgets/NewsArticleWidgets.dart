@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
+import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 import 'package:kvis_sf/models/NewsList.dart';
 
@@ -81,6 +79,11 @@ class NewsArticleList extends StatefulWidget {
 }
 
 class _NewsArticleListState extends State<NewsArticleList> {
+  // TODO:
+  //  Implement offline check and cache;
+  //  should be implemented in Model;
+  //  Redo drawing implementation to reduce garbage;
+  //  Maybe Add a header?
   Future<List<NewsArticle>> _futurePost =
   getNewsArticles("https://jsonplaceholder.typicode.com/posts?userId=2");
 
@@ -94,6 +97,9 @@ class _NewsArticleListState extends State<NewsArticleList> {
 
   void _openArticlePlaintext(BuildContext context, String title, Widget body,
       {Widget hero}) {
+    analytics.logViewItem(itemId: title,
+        itemName: "fullpage_article_plaintext",
+        itemCategory: "news_article");
     triggerFullPage(
       context,
       Text(title),

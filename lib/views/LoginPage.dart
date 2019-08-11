@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+
+import 'package:kvis_sf/models/GlobalState.dart';
+import 'package:kvis_sf/models/AuthenticationSystem.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -23,15 +24,16 @@ class _LoginPageState extends State<LoginPage> {
 
       _formKey.currentState.save();
       if (_formKey.currentState.validate()) {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-            email: _formKey.currentState.value["username"],
-            password: _formKey.currentState.value["password"]);
-      } else {
-        _loginMsg = "Please make sure you have filled in your credentials.";
+        analytics.logLogin(loginMethod: "Username and Password");
+        await AuthSystem.instance.signInAnonymously(
+            _formKey.currentState.value["username"],
+            _formKey.currentState.value["password"]);
+        return;
       }
 
       setState(() {
         _loggingIn = false;
+        _loginMsg = "Please make sure you have filled in your credentials.";
       });
     } catch (error) {
       setState(() {
@@ -125,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                     _loginMsg,
                     textAlign: TextAlign.center,
                   ),
-                )
+                ),
               ],
             ),
           ),

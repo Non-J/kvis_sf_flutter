@@ -50,20 +50,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0-pre.3"
-  firebase_auth:
+  firebase_analytics:
     dependency: "direct main"
     description:
-      name: firebase_auth
+      name: firebase_analytics
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.0+1"
-  firebase_core:
-    dependency: transitive
+    version: "5.0.0"
+  firebase_crashlytics:
+    dependency: "direct main"
     description:
-      name: firebase_core
+      name: firebase_crashlytics
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0+8"
+    version: "0.1.0+2"
   firebase_messaging:
     dependency: "direct main"
     description:
@@ -165,13 +165,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.1"
-  provider:
-    dependency: "direct main"
-    description:
-      name: provider
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.0+1"
   quiver:
     dependency: transitive
     description:
@@ -179,6 +172,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.3"
+  shared_preferences:
+    dependency: "direct main"
+    description:
+      name: shared_preferences
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.3+4"
   sky_engine:
     dependency: transitive
     description: flutter

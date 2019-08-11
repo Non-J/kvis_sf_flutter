@@ -19,12 +19,15 @@ class FullPage extends StatelessWidget {
 
 void triggerFullPage(BuildContext context, Widget title, Widget child) {
   Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => FullPage(
-                title: title,
-                child: child,
-              )));
+    context,
+    MaterialPageRoute(
+      builder: (context) =>
+          FullPage(
+            title: title,
+            child: child,
+          ),
+    ),
+  );
 }
 
 void triggerBottomSheet(BuildContext context, Widget child) {
@@ -37,8 +40,11 @@ void triggerBottomSheet(BuildContext context, Widget child) {
   );
 }
 
-void triggerAlert(BuildContext context, Widget title, Widget child,
-    List<Widget> actions) {
+void triggerAlert(BuildContext context,
+    {@required Widget title,
+      @required Widget child,
+      List<Widget> actions,
+      bool backgroundDismissible = true}) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -49,5 +55,6 @@ void triggerAlert(BuildContext context, Widget title, Widget child,
         actions: actions,
       );
     },
+    barrierDismissible: backgroundDismissible,
   );
 }
