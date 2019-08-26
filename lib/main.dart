@@ -12,6 +12,7 @@ import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 void main() {
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
 
+  AnalyticsState.init();
   AuthSystem.instance.init();
 
   runApp(MyApp());
@@ -24,8 +25,8 @@ class MyApp extends StatelessWidget {
       title: 'KVIS Science Fair',
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.purple,
-        accentColor: Colors.purple,
+        primarySwatch: Colors.blue,
+        accentColor: Colors.blueAccent,
         typography: Typography(
           platform: TargetPlatform.android,
           englishLike: Typography.englishLike2018,
@@ -57,8 +58,6 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
-
-    analytics.setAnalyticsCollectionEnabled(true);
 
     _firebaseCloudMessaging.requestNotificationPermissions();
 
@@ -108,7 +107,7 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
   Widget build(BuildContext context) {
     return StreamBuilder<AuthUser>(
       stream: authStateChanged,
-      initialData: AuthSystem.instance.initialAuthState,
+      initialData: AuthSystem.instance.authUser,
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState != ConnectionState.active) {
           return Center(

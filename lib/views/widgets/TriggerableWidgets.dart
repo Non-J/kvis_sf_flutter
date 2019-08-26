@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// TODO: Rewrite to improve performance and lower reliance on GC
+
 class FullPage extends StatelessWidget {
   final Widget title;
   final Widget child;

@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
 
-class AccountWidget extends StatefulWidget {
-  AccountWidget({Key key}) : super(key: key);
-
-  @override
-  _AccountWidgetState createState() => _AccountWidgetState();
-}
-
-class _AccountWidgetState extends State<AccountWidget> {
+class AccountWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(

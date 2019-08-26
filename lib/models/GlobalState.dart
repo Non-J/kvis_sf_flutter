@@ -1,41 +1,37 @@
-import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
+const api_endpoint = "https://somewhere.example.com";
+
 final FirebaseAnalytics analytics = FirebaseAnalytics();
 
-class GlobalState {
-  // Store and get data
-  final Map<dynamic, dynamic> _data = {};
+class AnalyticsState {
+  static bool _analyticsEnabled;
 
-  set(key, value) {
-    _data[key] = value;
-    _stateChangedController.add(_data);
+  static void init() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      _analyticsEnabled = prefs.getBool("analytics_enabled") ?? true;
+      analytics.setAnalyticsCollectionEnabled(_analyticsEnabled);
+    } catch (error) {
+      _analyticsEnabled = true;
+      analytics.setAnalyticsCollectionEnabled(_analyticsEnabled);
+    }
   }
 
-  setPersist(key, value) {
-    // TODO: Implement this
-    throw "Not Implemented: GlobalState.setPersist";
+  bool get analyticsEnabled => _analyticsEnabled;
+
+  set analyticsEnabled(bool value) {
+    analytics.logEvent(
+        name: "toggle_analytics", parameters: {"value": value.toString()});
+    _analyticsEnabled = value;
+    analytics.setAnalyticsCollectionEnabled(_analyticsEnabled);
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool("analytics_enabled", value);
+    });
   }
 
-  get(key) {
-    return _data[key];
-  }
+  static AnalyticsState instance = new AnalyticsState._();
 
-  init() {
-    // TODO: Implement this: Initial recall of persistence state
-    throw "Not Implemented: GlobalState.init";
-  }
-
-  get state => _data;
-
-  // Listening to state changes via stream
-  StreamController _stateChangedController = StreamController.broadcast();
-
-  Stream get onStateChanged => _stateChangedController.stream;
-
-  // AuthSystem.instance
-  static GlobalState instance = new GlobalState._();
-
-  GlobalState._();
+  AnalyticsState._();
 }
