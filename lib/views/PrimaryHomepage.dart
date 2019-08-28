@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:kvis_sf/views/DashboardPage.dart';
-import 'package:kvis_sf/views/NewsPage.dart';
+import 'package:kvis_sf/views/ProfilePage.dart';
 import 'package:kvis_sf/views/SchedulePage.dart';
-import 'package:kvis_sf/views/AccountPage.dart';
 
 class PrimaryHomepage extends StatefulWidget {
   PrimaryHomepage({Key key}) : super(key: key);
@@ -12,20 +10,18 @@ class PrimaryHomepage extends StatefulWidget {
 
   final List<BottomNavigationBarItem> navigationBarChildren = [
     BottomNavigationBarItem(
-        icon: new Icon(Icons.dashboard), title: new Text("Dashboard")),
+      icon: Icon(Icons.dashboard),
+      title: Text("Dashboard"),
+    ),
     BottomNavigationBarItem(
-        icon: new Icon(Icons.pages), title: new Text("News")),
-    BottomNavigationBarItem(
-        icon: new Icon(Icons.date_range), title: new Text("Schedule")),
-    BottomNavigationBarItem(
-        icon: new Icon(Icons.account_box), title: new Text("Account")),
+      icon: Icon(Icons.calendar_today),
+      title: Text("Schedule"),
+    ),
   ];
 
   final List<Widget> children = [
     DashboardWidget(),
-    NewsWidget(),
     ScheduleWidget(),
-    AccountWidget(),
   ];
 
   @override
@@ -33,7 +29,6 @@ class PrimaryHomepage extends StatefulWidget {
 }
 
 class _PrimaryHomepageState extends State<PrimaryHomepage> {
-  // TODO: Remove globalstate page persistence hack
   int _pageNumber = 0;
 
   void _goToPage(int index) {
@@ -69,11 +64,35 @@ class _PrimaryHomepageState extends State<PrimaryHomepage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            stops: [0.0, 1.0],
+            colors: [
+              Color.fromRGBO(212, 234, 209, 1.0),
+              Color.fromRGBO(184, 213, 233, 1.0),
+            ],
+          ),
+        ),
+        child: BottomNavigationBar(
           onTap: _goToPage,
           type: BottomNavigationBarType.fixed,
+          elevation: 0.0,
+          backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
           currentIndex: _pageNumber,
-          items: widget.navigationBarChildren),
+          items: widget.navigationBarChildren,
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        label: Text("Profile"),
+        icon: Icon(Icons.person),
+        onPressed: () {
+          triggerProfilePage(context);
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

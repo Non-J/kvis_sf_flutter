@@ -1,11 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart' as url_launcher;
-
-import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/models/GlobalState.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class LoginPage extends StatelessWidget {
   @override
@@ -17,7 +15,7 @@ class LoginPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            stops: [0.3, 1.0],
+            stops: [0.0, 1.0],
             colors: [
               Color.fromRGBO(212, 234, 209, 1.0),
               Color.fromRGBO(184, 213, 233, 1.0),
@@ -45,13 +43,14 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    child: Image.asset('images/ISSF2020_LOGO_WithDate.png'),
+                    child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
                     height: 300.0,
                     padding: EdgeInsets.all(5.0),
                   ),
                   _LoginForm(),
                   _LegalText(),
-                  _AnalyticControl(),
+                  // TODO: Either pull the analytics or re-enable it.
+                  // _AnalyticControl(),
                 ],
               ),
             ),
@@ -77,21 +76,23 @@ class _LoginFormState extends State<_LoginForm> {
     try {
       setState(() {
         _loggingIn = true;
-        _loginMsg = "Logging in...";
+        _loginMsg = "";
       });
 
       _formKey.currentState.save();
       if (_formKey.currentState.validate()) {
         analytics.logLogin(loginMethod: "Username and Password");
-        await AuthSystem.instance.signInAnonymously(
-            _formKey.currentState.value["username"],
+
+        await (Future.delayed(Duration(milliseconds: 2000)));
+
+        AuthSystem.signInAnonymously(_formKey.currentState.value["username"],
             _formKey.currentState.value["password"]);
         return;
       }
 
       setState(() {
         _loggingIn = false;
-        _loginMsg = "Please make sure you have filled in your credentials.";
+        _loginMsg = "";
       });
     } catch (error) {
       setState(() {
@@ -149,7 +150,7 @@ class _LoginFormState extends State<_LoginForm> {
         ),
         Container(
           width: 120.0,
-          height: 40.0,
+          height: 45.0,
           margin: EdgeInsets.all(10.0),
           child: RaisedButton(
             onPressed: (_loggingIn ? null : _signIn),
@@ -173,10 +174,12 @@ class _LoginFormState extends State<_LoginForm> {
         ),
         Container(
           margin: EdgeInsets.all(20.0),
-          child: Text(
-            _loginMsg,
-            textAlign: TextAlign.center,
-          ),
+          child: Text(_loginMsg,
+              textAlign: TextAlign.center,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .body1),
         ),
       ],
     );
@@ -251,7 +254,7 @@ class _AnalyticControlState extends State<_AnalyticControl> {
         RichText(
             text: TextSpan(children: [
               TextSpan(
-                text: "Share Usage Data.\n",
+                text: "Share Usage Statistics.\n",
                 style: Theme
                     .of(context)
                     .textTheme
@@ -259,7 +262,7 @@ class _AnalyticControlState extends State<_AnalyticControl> {
               ),
               TextSpan(
                   text:
-                  "Usage Data allows us to improve the app for next year's science fair.\nSee our privacy policy for more details.",
+                  "Usage Statistics allows us to improve the app for next year's science fair.\nSee our privacy policy for more details.",
                   style: Theme
                       .of(context)
                       .textTheme

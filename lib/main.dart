@@ -1,19 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/observer.dart';
-
-import 'package:kvis_sf/models/GlobalState.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/views/PrimaryHomepage.dart';
+import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:kvis_sf/views/LoginPage.dart';
+import 'package:kvis_sf/views/PrimaryHomepage.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 
 void main() {
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
 
   AnalyticsState.init();
-  AuthSystem.instance.init();
+  AuthSystem.init();
 
   runApp(MyApp());
 }
@@ -50,8 +49,7 @@ class FirebaseHandler extends StatefulWidget {
 class _FirebaseHandlerState extends State<FirebaseHandler>
     with WidgetsBindingObserver {
   final FirebaseMessaging _firebaseCloudMessaging = FirebaseMessaging();
-  final Stream<AuthUser> authStateChanged =
-      AuthSystem.instance.onAuthStateChanged;
+  final Stream<AuthUser> authStateChanged = AuthSystem.onAuthStateChanged;
 
   @override
   void initState() {
@@ -107,7 +105,7 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
   Widget build(BuildContext context) {
     return StreamBuilder<AuthUser>(
       stream: authStateChanged,
-      initialData: AuthSystem.instance.authUser,
+      initialData: AuthSystem.authUser,
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState != ConnectionState.active) {
           return Center(
