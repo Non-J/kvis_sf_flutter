@@ -1,6 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
 
 void triggerProfilePage(BuildContext context) {
@@ -18,13 +18,13 @@ class ProfileWidget extends StatelessWidget {
     return Scaffold(
       body: Container(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             GradientAppBar(
               title: Text(
                 "Profile and Settings",
                 style: Theme.of(context).textTheme.headline,
               ),
-              barHeight: 60.0,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -35,28 +35,46 @@ class ProfileWidget extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
-              "Profile and Settings",
-              style: Theme.of(context).textTheme.display1,
-            ),
-            RaisedButton(
-              onPressed: () {
-                analytics.logEvent(name: "logout");
-                AuthSystem.signOut();
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-              },
-              child: Text("Logout"),
-              padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-              elevation: 5.0,
-              color: Colors.blueAccent,
-              textColor: Colors.white,
-            ),
-            Text("Logged in as ${AuthSystem.username}"),
+            ProfilePageContent(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class ProfilePageContent extends StatelessWidget {
+  const ProfilePageContent({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          "Profile and Settings",
+          style: Theme
+              .of(context)
+              .textTheme
+              .display1,
+        ),
+        RaisedButton(
+          onPressed: () {
+            AuthSystem.signOut();
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+          child: Text("Logout"),
+          padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+          elevation: 5.0,
+          color: Colors.blueAccent,
+          textColor: Colors.white,
+        ),
+        Text("Logged in as ${AuthSystem.username}"),
+      ],
     );
   }
 }

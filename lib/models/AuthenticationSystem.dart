@@ -13,7 +13,6 @@ class AuthUser {
 
 class AuthSystem {
   static AuthUser _user = AuthUser();
-  static AuthSystem instance = new AuthSystem._();
 
   AuthSystem._();
 

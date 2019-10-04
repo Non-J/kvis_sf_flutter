@@ -2,14 +2,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -24,34 +23,36 @@ class LoginPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Center(
-            child: FittedBox(
-              fit: BoxFit.contain,
-              alignment: Alignment(0.0, 0.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    margin: EdgeInsets.all(20.0),
-                    child: Text(
-                      "Welcome",
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .display2
-                          .apply(color: Color.fromRGBO(127, 206, 172, 1.0)),
-                    ),
+            child: SingleChildScrollView(
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment(0.0, 0.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.all(20.0),
+                        child: Text(
+                          "Welcome",
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .display2
+                              .apply(color: Color.fromRGBO(127, 206, 172, 1.0)),
+                        ),
+                      ),
+                      Container(
+                        child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
+                        height: 300.0,
+                        padding: EdgeInsets.all(5.0),
+                      ),
+                      _LoginForm(),
+                      _LegalText(),
+                    ],
                   ),
-                  Container(
-                    child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
-                    height: 300.0,
-                    padding: EdgeInsets.all(5.0),
-                  ),
-                  _LoginForm(),
-                  _LegalText(),
-                  // TODO: Either pull the analytics or re-enable it.
-                  // _AnalyticControl(),
-                ],
+                ),
               ),
             ),
           ),
@@ -81,8 +82,6 @@ class _LoginFormState extends State<_LoginForm> {
 
       _formKey.currentState.save();
       if (_formKey.currentState.validate()) {
-        analytics.logLogin(loginMethod: "Username and Password");
-
         await (Future.delayed(Duration(milliseconds: 2000)));
 
         AuthSystem.signInAnonymously(_formKey.currentState.value["username"],
@@ -219,55 +218,6 @@ class _LegalText extends StatelessWidget {
             ),
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _AnalyticControl extends StatefulWidget {
-  @override
-  _AnalyticControlState createState() => _AnalyticControlState();
-}
-
-class _AnalyticControlState extends State<_AnalyticControl> {
-  bool _analyticsEnabled;
-
-  @override
-  void initState() {
-    super.initState();
-    _analyticsEnabled = AnalyticsState.instance.analyticsEnabled;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Checkbox(
-          value: _analyticsEnabled,
-          onChanged: (value) {
-            AnalyticsState.instance.analyticsEnabled = value;
-            setState(() {
-              _analyticsEnabled = value;
-            });
-          },
-        ),
-        RichText(
-            text: TextSpan(children: [
-              TextSpan(
-                text: "Share Usage Statistics.\n",
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .subtitle,
-              ),
-              TextSpan(
-                  text:
-                  "Usage Statistics allows us to improve the app for next year's science fair.\nSee our privacy policy for more details.",
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .body2)
-            ])),
       ],
     );
   }

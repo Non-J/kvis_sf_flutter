@@ -1,25 +1,26 @@
-import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import "package:flutter/services.dart";
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/models/GlobalState.dart';
 import 'package:kvis_sf/views/LoginPage.dart';
 import 'package:kvis_sf/views/PrimaryHomepage.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 
-void main() {
+void main() async {
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
 
-  AnalyticsState.init();
-  AuthSystem.init();
-
-  runApp(MyApp());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    runApp(MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    AuthSystem.init();
+
     return MaterialApp(
       title: 'KVIS Science Fair',
       theme: ThemeData(
@@ -34,9 +35,6 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: FirebaseHandler(),
-      navigatorObservers: [
-        FirebaseAnalyticsObserver(analytics: analytics),
-      ],
     );
   }
 }
@@ -89,12 +87,10 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        analytics.logAppOpen();
         break;
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.paused:
-        analytics.logEvent(name: "app_close");
         break;
       case AppLifecycleState.suspending:
         break;

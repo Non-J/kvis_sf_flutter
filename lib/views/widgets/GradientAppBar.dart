@@ -5,7 +5,7 @@ class GradientAppBar extends StatelessWidget {
   final double barHeight;
   final Gradient gradient;
 
-  GradientAppBar({this.title, this.barHeight: 50.0, this.gradient});
+  GradientAppBar({this.title, this.barHeight: 60.0, this.gradient});
 
   @override
   Widget build(BuildContext context) {
@@ -16,18 +16,19 @@ class GradientAppBar extends StatelessWidget {
       height: statusbarHeight + barHeight,
       child: Row(
         children: <Widget>[
-          Container(
-            margin: EdgeInsets.all(15.0),
-            child: InkWell(
+          InkWell(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 16.0),
               child: Icon(Icons.arrow_back),
-              onTap: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-              },
             ),
+            onTap: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+            },
           ),
-          title,
+          Container(
+              margin: EdgeInsets.symmetric(horizontal: 16.0), child: title),
         ],
       ),
       decoration: BoxDecoration(

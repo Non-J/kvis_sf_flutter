@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 
-import 'package:kvis_sf/models/GlobalState.dart';
-import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
+import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/NewsList.dart';
+import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 
 class NewsArticleItemSmall extends StatelessWidget {
   final Widget child;
@@ -97,9 +96,6 @@ class _NewsArticleListState extends State<NewsArticleList> {
 
   void _openArticlePlaintext(BuildContext context, String title, Widget body,
       {Widget hero}) {
-    analytics.logViewItem(itemId: title,
-        itemName: "fullpage_article_plaintext",
-        itemCategory: "news_article");
     triggerFullPage(
       context,
       Text(title),
