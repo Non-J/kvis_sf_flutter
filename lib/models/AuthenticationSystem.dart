@@ -1,90 +1,81 @@
-import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rxdart/rxdart.dart';
 
-import 'package:shared_preferences/shared_preferences.dart';
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Firestore _db = Firestore.instance;
 
-enum LogInMode { notLoggedIn, anonymously, backendToken }
+  Observable<FirebaseUser> user;
+  Observable<Map<String, dynamic>> profile;
+  PublishSubject<bool> loginLoading;
+  PublishSubject<String> loginMessage;
 
-class AuthUser {
-  LogInMode logInMode;
-  String username;
-  Map<String, dynamic> profile;
-  String token;
-}
+  AuthService() {
+    user = Observable(_auth.onAuthStateChanged);
 
-class AuthSystem {
-  static AuthUser _user = AuthUser();
+    loginLoading = PublishSubject();
+    loginMessage = PublishSubject();
 
-  AuthSystem._();
-
-  static StreamController _authStateChangedController =
-  StreamController<AuthUser>.broadcast();
-
-  static Stream<AuthUser> get onAuthStateChanged =>
-      _authStateChangedController.stream;
-
-  static AuthUser get authUser => _user;
-
-  static String get username => _user.username;
-
-  static LogInMode get logInMode => _user.logInMode;
-
-  static void _save() {
-    SharedPreferences.getInstance().then((SharedPreferences prefs) {
-      prefs.setString("auth_username", _user.username ?? "");
-      prefs.setString("auth_token", _user.token ?? "");
-      prefs.setString("auth_logInMode", _user.logInMode.toString());
+    profile = user.switchMap((FirebaseUser u) {
+      if (u != null) {
+        return _db
+            .collection('users')
+            .document(u.uid)
+            .snapshots()
+            .map((snap) => snap.data);
+      } else {
+        return Observable.just({});
+      }
     });
   }
 
-  static void init() {
-    SharedPreferences.getInstance().then((SharedPreferences prefs) {
-      final LogInMode loadedLoginMode = LogInMode.values
-          .firstWhere((e) => e.toString() == prefs.getString("auth_logInMode"));
+  void signOut() {
+    _auth.signOut();
+    loginMessage.add("Signed-out");
+  }
 
-      switch (loadedLoginMode) {
-        case LogInMode.anonymously:
-          _user.username = prefs.getString("auth_username");
-          _user.logInMode = LogInMode.anonymously;
-          _authStateChangedController.add(_user);
+  Future<FirebaseUser> signInAnonymously(String username,
+      String password) async {
+    throw "This sign-in method has been disabled.";
+  }
+
+  Future<FirebaseUser> signInBackend(String username, String password) async {
+    loginLoading.add(true);
+    try {
+      AuthResult signIn = await _auth.signInWithEmailAndPassword(
+          email: username, password: password);
+      updateUserData(signIn.user);
+      loginLoading.add(false);
+      return signIn.user;
+    } catch (err) {
+      loginLoading.add(false);
+      switch (err.code) {
+        case 'ERROR_INVALID_EMAIL':
+          loginMessage.add("Make sure your username is correct.");
           break;
-        case LogInMode.backendToken:
-          prefs.setString("auth_username", _user.username ?? "");
-          prefs.setString("auth_token", _user.token ?? "");
-          _user.logInMode = LogInMode.backendToken;
-          _authStateChangedController.add(_user);
-
+        case 'ERROR_USER_NOT_FOUND':
+          loginMessage.add("Make sure your credentials are correct.");
           break;
-
-        case LogInMode.notLoggedIn:
+        case 'ERROR_WRONG_PASSWORD':
+          loginMessage.add("Make sure your credentials are correct.");
+          break;
         default:
-          signOut();
+          loginMessage.add("Sign-in Failed.\n${err.toString()}");
           break;
       }
-    }).catchError((error) {
-      signOut();
-    });
-  }
-
-  static void signOut() {
-    _user.logInMode = LogInMode.notLoggedIn;
-    _authStateChangedController.add(_user);
-    _save();
-  }
-
-  static void signInAnonymously(String username, String password) async {
-    if (password == "debug_reject") {
-      await Future.delayed(const Duration(seconds: 3));
-
-      throw "Sign-in rejection test";
+      return null;
     }
-    _user.logInMode = LogInMode.anonymously;
-    _user.username = username;
-    _authStateChangedController.add(_user);
-    _save();
   }
 
-  static void signInBackend(String username, String password) async {
-    _authStateChangedController.add(_user);
-    _save();
+  void updateUserData(FirebaseUser user) async {
+    DocumentReference ref = _db.collection('users').document(user.uid);
+
+    return ref.setData({
+      'uid': user.uid,
+      'email': user.email,
+    }, merge: true);
   }
 }
+
+final AuthService authService = AuthService();

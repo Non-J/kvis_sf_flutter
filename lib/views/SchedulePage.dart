@@ -29,6 +29,7 @@ class ScheduleCalendar extends StatefulWidget {
 
 class _ScheduleCalendarState extends State<ScheduleCalendar> {
   final ScrollController _scheduleScroller = ScrollController();
+  StreamSubscription<List<ScheduledEvent>> _scheduleServiceSubscription;
   List<ScheduledEvent> _scheduledEvents;
   List<Widget> _entries;
 
@@ -36,13 +37,22 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
   void initState() {
     super.initState();
 
-    _scheduledEvents = getScheduledEvents();
-    _entries = _getScheduleWidgets();
+    _scheduledEvents = <ScheduledEvent>[];
+    _entries = <Widget>[];
+
+    _scheduleServiceSubscription =
+        scheduleService.scheduledEvents.listen((list) {
+          setState(() {
+            _scheduledEvents = list;
+            _entries = _getScheduleWidgets();
+          });
+        });
   }
 
   @override
   void dispose() {
     _scheduleScroller.dispose();
+    _scheduleServiceSubscription.cancel();
 
     super.dispose();
   }
@@ -78,12 +88,20 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: ListView(
-        controller: _scheduleScroller,
-        children: _entries,
+    return (_entries.isEmpty
+        ? Center(
+      child: CircularProgressIndicator(),
+    )
+        : Container(
+      child: RefreshIndicator(
+        onRefresh: scheduleService.reload,
+        child: ListView(
+          controller: _scheduleScroller,
+          children: _entries,
+          physics: AlwaysScrollableScrollPhysics(),
+        ),
       ),
-    );
+    ));
   }
 }
 
@@ -246,7 +264,7 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
                       .of(context)
                       .textTheme
                       .body1,
-                )
+                ),
               ],
             ),
           ),

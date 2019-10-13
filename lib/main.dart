@@ -1,7 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import "package:flutter/services.dart";
+import 'package:flutter/services.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
 import 'package:kvis_sf/views/LoginPage.dart';
 import 'package:kvis_sf/views/PrimaryHomepage.dart';
@@ -19,8 +20,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    AuthSystem.init();
-
     return MaterialApp(
       title: 'KVIS Science Fair',
       theme: ThemeData(
@@ -47,7 +46,6 @@ class FirebaseHandler extends StatefulWidget {
 class _FirebaseHandlerState extends State<FirebaseHandler>
     with WidgetsBindingObserver {
   final FirebaseMessaging _firebaseCloudMessaging = FirebaseMessaging();
-  final Stream<AuthUser> authStateChanged = AuthSystem.onAuthStateChanged;
 
   @override
   void initState() {
@@ -59,6 +57,8 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
 
     _firebaseCloudMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
+        debugPrint(message.toString());
+
         triggerAlert(context,
             title: Text(message["notification"]["title"] ?? "New Notification"),
             child: Text(message["notification"]["body"] ?? ""),
@@ -99,17 +99,19 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthUser>(
-      stream: authStateChanged,
-      initialData: AuthSystem.authUser,
+    return StreamBuilder<FirebaseUser>(
+      stream: authService.user,
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState != ConnectionState.active) {
           return Center(
             child: CircularProgressIndicator(),
           );
         } else {
-          if (snapshot.hasData &&
-              snapshot.data.logInMode != LogInMode.notLoggedIn) {
+          if (snapshot.hasError) {
+            // TODO: Handle this error
+          }
+
+          if (snapshot.hasData) {
             return PrimaryHomepage();
           }
 

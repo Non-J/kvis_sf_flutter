@@ -1,4 +1,6 @@
-import "package:intl/intl.dart";
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ScheduledEvent {
   final String id, name, location, details;
@@ -20,7 +22,47 @@ class ScheduledEvent {
       : "${DateFormat("d/MMM").format(this.end.toLocal())} ${DateFormat("Hm").format(this.end.toLocal())} ");
 }
 
+class ScheduleService {
+  final Firestore _db = Firestore.instance;
+
+  List<ScheduledEvent> _data;
+
+  BehaviorSubject<List<ScheduledEvent>> scheduledEvents;
+
+  ScheduleService() {
+    _data = [];
+    scheduledEvents = BehaviorSubject<List<ScheduledEvent>>.seeded(_data);
+    reload();
+  }
+
+  Future reload() {
+    _data.clear();
+    _db.collection("schedules").getDocuments().then((collectionSnapshot) {
+      collectionSnapshot.documents.forEach((document) {
+        _data.add(ScheduledEvent(
+            id: document.documentID,
+            name: document.data["name"] ?? "No Name",
+            location: document.data["location"] ?? "No Specified Location",
+            details: document.data["details"] ?? "No Specified Details",
+            begin: DateTime.fromMillisecondsSinceEpoch(
+                document.data["begin"] ?? 0),
+            end: DateTime.fromMillisecondsSinceEpoch(
+                document.data["end"] ?? 0)));
+      });
+    }).then((_) {
+      scheduledEvents.add(_data);
+    }).catchError((err) {
+      // TODO: Handle DB errors
+      throw err;
+    });
+    return Future.value(null);
+  }
+}
+
+final ScheduleService scheduleService = ScheduleService();
+
 List<ScheduledEvent> getScheduledEvents() {
+  // TODO Remove this
   return _officialSchedule;
 }
 

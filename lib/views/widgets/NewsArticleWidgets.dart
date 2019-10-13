@@ -11,11 +11,12 @@ class NewsArticleItemSmall extends StatelessWidget {
   final double height;
   final double pictureWidth;
 
-  const NewsArticleItemSmall({@required this.child,
-    this.picture,
-    this.onTap,
-    this.height = 100.0,
-    this.pictureWidth = 100.0});
+  const NewsArticleItemSmall(
+      {@required this.child,
+      this.picture,
+      this.onTap,
+      this.height = 100.0,
+      this.pictureWidth = 100.0});
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +85,7 @@ class _NewsArticleListState extends State<NewsArticleList> {
   //  Redo drawing implementation to reduce garbage;
   //  Maybe Add a header?
   Future<List<NewsArticle>> _futurePost =
-  getNewsArticles("https://jsonplaceholder.typicode.com/posts?userId=2");
+      getNewsArticles("https://jsonplaceholder.typicode.com/posts?userId=2");
 
   Future _refreshArticles() {
     setState(() {
@@ -138,19 +139,13 @@ class _NewsArticleListState extends State<NewsArticleList> {
                           snapshot.data[index].title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .title,
+                          style: Theme.of(context).textTheme.title,
                         ),
                         subtitle: Text(
                           snapshot.data[index].content,
                           maxLines: 3,
                           overflow: TextOverflow.fade,
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .body2,
+                          style: Theme.of(context).textTheme.body2,
                         ),
                       ),
                       picture: Hero(
@@ -165,10 +160,7 @@ class _NewsArticleListState extends State<NewsArticleList> {
                                 padding: EdgeInsets.all(10.0),
                                 child: Text(
                                   snapshot.data[index].content,
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .body1,
+                                  style: Theme.of(context).textTheme.body1,
                                 ),
                               ),
                               hero: Placeholder());

@@ -62,7 +62,7 @@ class ProfilePageContent extends StatelessWidget {
         ),
         RaisedButton(
           onPressed: () {
-            AuthSystem.signOut();
+            authService.signOut();
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             }
@@ -73,8 +73,34 @@ class ProfilePageContent extends StatelessWidget {
           color: Colors.blueAccent,
           textColor: Colors.white,
         ),
-        Text("Logged in as ${AuthSystem.username}"),
+        ProfileDisplay(),
       ],
     );
+  }
+}
+
+class ProfileDisplay extends StatefulWidget {
+  const ProfileDisplay({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _ProfileDisplayState createState() => _ProfileDisplayState();
+}
+
+class _ProfileDisplayState extends State<ProfileDisplay> {
+  Map<String, dynamic> _profile;
+
+  @override
+  initState() {
+    super.initState();
+
+    authService.profile.listen((state) => setState(() => _profile = state));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: Fix _profile is null even on signed in
+    return Text("Logged in as ${_profile.toString()}");
   }
 }

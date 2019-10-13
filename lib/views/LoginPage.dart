@@ -73,32 +73,28 @@ class _LoginFormState extends State<_LoginForm> {
   bool _loggingIn = false;
   String _loginMsg = "";
 
-  void _signIn() async {
-    try {
-      setState(() {
-        _loggingIn = true;
-        _loginMsg = "";
-      });
+  @override
+  void initState() {
+    super.initState();
 
-      _formKey.currentState.save();
-      if (_formKey.currentState.validate()) {
-        await (Future.delayed(Duration(milliseconds: 2000)));
+    authService.loginLoading
+        .listen((state) => setState(() => _loggingIn = state));
 
-        AuthSystem.signInAnonymously(_formKey.currentState.value["username"],
-            _formKey.currentState.value["password"]);
-        return;
-      }
+    authService.loginMessage
+        .listen((state) => setState(() => _loginMsg = state));
+  }
 
-      setState(() {
-        _loggingIn = false;
-        _loginMsg = "";
-      });
-    } catch (error) {
-      setState(() {
-        _loggingIn = false;
-        _loginMsg =
-        "Unable to login.\n Please make sure your credentials are correct.";
-      });
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _signIn() {
+    _formKey.currentState.save();
+    if (_formKey.currentState.validate()) {
+      authService.signInBackend(_formKey.currentState.value["username"],
+          _formKey.currentState.value["password"]);
+      return;
     }
   }
 
@@ -106,6 +102,16 @@ class _LoginFormState extends State<_LoginForm> {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
+        Container(
+          margin: EdgeInsets.all(20.0),
+          width: 500.0,
+          child: Text(_loginMsg,
+              textAlign: TextAlign.center,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .body2),
+        ),
         Container(
           width: 300.0,
           child: FormBuilder(
@@ -170,15 +176,6 @@ class _LoginFormState extends State<_LoginForm> {
               )),
             ),
           ),
-        ),
-        Container(
-          margin: EdgeInsets.all(20.0),
-          child: Text(_loginMsg,
-              textAlign: TextAlign.center,
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .body1),
         ),
       ],
     );
