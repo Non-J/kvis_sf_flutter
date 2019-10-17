@@ -174,7 +174,7 @@ class ScheduleCalendarEntry extends StatefulWidget {
 
   final ScheduledEvent event;
 
-  ScheduleCalendarEntry(this.event);
+  ScheduleCalendarEntry(this.event, {Key key}) : super(key: key);
 }
 
 class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
@@ -184,6 +184,8 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
 
   bool _onGoing = false;
   StreamSubscription<List<ScheduledEvent>> _reloadEvent;
+
+  Timer _begin, _end;
 
   void _changeOnGoingState() {
     if (DateTime.now().isAfter(widget.event.begin) &&
@@ -202,16 +204,15 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
   void initState() {
     super.initState();
 
-    if (DateTime.now().isBefore(widget.event.begin)) {
-      Timer(
-          widget.event.begin.difference(DateTime.now()) + Duration(seconds: 2),
-          _changeOnGoingState);
-    }
+    _begin = Timer(
+        widget.event.begin.difference(DateTime.now()) +
+            Duration(milliseconds: 250),
+        _changeOnGoingState);
 
-    if (DateTime.now().isBefore(widget.event.end)) {
-      Timer(widget.event.end.difference(DateTime.now()) + Duration(seconds: 2),
-          _changeOnGoingState);
-    }
+    _end = Timer(
+        widget.event.end.difference(DateTime.now()) +
+            Duration(milliseconds: 250),
+        _changeOnGoingState);
 
     _changeOnGoingState();
 
@@ -224,6 +225,8 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
   @override
   void dispose() {
     _reloadEvent.cancel();
+    _begin.cancel();
+    _end.cancel();
 
     super.dispose();
   }

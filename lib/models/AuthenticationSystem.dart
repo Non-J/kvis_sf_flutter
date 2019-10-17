@@ -35,8 +35,8 @@ class AuthService {
     loginMessage.add("Signed-out");
   }
 
-  Future<FirebaseUser> signInAnonymously(String username,
-      String password) async {
+  Future<FirebaseUser> signInAnonymously(
+      String username, String password) async {
     throw "This sign-in method has been disabled.";
   }
 
