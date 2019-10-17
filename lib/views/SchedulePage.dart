@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kvis_sf/models/ScheduleModel.dart';
@@ -184,6 +183,7 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
   }
 
   bool _onGoing = false;
+  StreamSubscription<List<ScheduledEvent>> _reloadEvent;
 
   void _changeOnGoingState() {
     if (DateTime.now().isAfter(widget.event.begin) &&
@@ -200,7 +200,7 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
 
   @override
   void initState() {
-    _changeOnGoingState();
+    super.initState();
 
     if (DateTime.now().isBefore(widget.event.begin)) {
       Timer(
@@ -212,6 +212,20 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
       Timer(widget.event.end.difference(DateTime.now()) + Duration(seconds: 2),
           _changeOnGoingState);
     }
+
+    _changeOnGoingState();
+
+    _reloadEvent = scheduleService.scheduledEvents.listen((list) {
+      // For some reason, if the function is called immediately, the changes doesn't take effect.
+      Timer(Duration(milliseconds: 250), _changeOnGoingState);
+    });
+  }
+
+  @override
+  void dispose() {
+    _reloadEvent.cancel();
+
+    super.dispose();
   }
 
   @override
