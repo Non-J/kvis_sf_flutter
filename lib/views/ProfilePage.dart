@@ -100,7 +100,10 @@ class _ProfileDisplayState extends State<ProfileDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Fix _profile is null even on signed in
-    return Text("Logged in as ${_profile.toString()}");
+    return Column(
+      children: <Widget>[
+        Text("Logged in as ${_profile.toString()}"),
+      ],
+    );
   }
 }

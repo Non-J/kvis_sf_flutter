@@ -123,13 +123,13 @@ class _LoginFormState extends State<_LoginForm> {
                   attribute: "username",
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Username",
+                    labelText: "Email",
                     filled: true,
                     fillColor: Color.fromRGBO(255, 255, 255, 0.3),
                   ),
                   validators: [
                     FormBuilderValidators.required(
-                        errorText: "Please enter Username."),
+                        errorText: "Please enter your email."),
                   ],
                 ),
               ),

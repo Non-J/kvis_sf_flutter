@@ -14,7 +14,7 @@ description: KVIS Science Fair Application
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
@@ -32,6 +32,7 @@ dependencies:
   firebase_messaging: ^5.1.3
   cloud_firestore: ^0.12.9+5
   flutter_form_builder: ^3.3.4
+  flash: ^1.2.0
 
 
 dev_dependencies:

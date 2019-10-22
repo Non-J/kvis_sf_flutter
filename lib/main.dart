@@ -57,20 +57,11 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
 
     _firebaseCloudMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        debugPrint(message.toString());
-
-        triggerAlert(context,
-            title: Text(message["notification"]["title"] ?? "New Notification"),
-            child: Text(message["notification"]["body"] ?? ""),
-            actions: [
-              FlatButton(
-                child: new Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-            backgroundDismissible: false);
+        FlashNotification.TopNotification(
+          context,
+          title: Text(message["notification"]["title"] ?? "New Notification"),
+          message: Text(message["notification"]["body"] ?? ""),
+        );
       },
       onResume: (Map<String, dynamic> message) async {},
       onLaunch: (Map<String, dynamic> message) async {},
@@ -80,6 +71,7 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    FlashNotification.dispose();
     super.dispose();
   }
 
@@ -99,25 +91,35 @@ class _FirebaseHandlerState extends State<FirebaseHandler>
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<FirebaseUser>(
-      stream: authService.user,
-      builder: (BuildContext context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.active) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        } else {
-          if (snapshot.hasError) {
-            // TODO: Handle this error
-          }
+    FlashNotification.init(context);
 
-          if (snapshot.hasData) {
-            return PrimaryHomepage();
-          }
+    // Overlay is used to create FlashNotification Barrier Effect
+    return Overlay(
+      initialEntries: [
+        OverlayEntry(
+          builder: (context) =>
+              StreamBuilder<FirebaseUser>(
+                stream: authService.user,
+                builder: (BuildContext context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.active) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    if (snapshot.hasError) {
+                      // TODO: Handle this error
+                    }
 
-          return LoginPage();
-        }
-      },
+                    if (snapshot.hasData) {
+                      return PrimaryHomepage();
+                    }
+
+                    return LoginPage();
+                  }
+                },
+              ),
+        ),
+      ],
     );
   }
 }
