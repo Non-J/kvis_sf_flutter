@@ -15,7 +15,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
 
       // TODO: Waiting for design team
       child: Text(
-        "Dashboard",
+        'Dashboard',
         style: Theme.of(context).textTheme.display1,
       ),
     );

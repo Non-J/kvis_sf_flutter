@@ -147,14 +147,14 @@ class ScheduleCalendarDate extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              DateFormat("EEEE").format(date),
+              DateFormat('EEEE').format(date),
               style: Theme
                   .of(context)
                   .textTheme
                   .display1,
             ),
             Text(
-              DateFormat("d MMMM y").format(date),
+              DateFormat('d MMMM y').format(date),
               style: Theme
                   .of(context)
                   .textTheme
@@ -248,10 +248,10 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
                 children: <Widget>[
                   (_onGoing
                       ? Chip(
-                    label: Text("On Going"),
+                    label: Text('On Going'),
                     backgroundColor: Colors.lightGreenAccent,
                   )
-                      : Text("")),
+                      : Text('')),
                   Text(
                     widget.event.name,
                     style: Theme
@@ -267,8 +267,8 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${widget.event.beginTimeString} - ${widget.event
-                      .endTimeString} at ${widget.event.location}",
+                  '${widget.event.beginTimeString} - ${widget.event
+                      .endTimeString} at ${widget.event.location}',
                   style: Theme
                       .of(context)
                       .textTheme

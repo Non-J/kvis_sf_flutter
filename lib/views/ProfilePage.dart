@@ -1,18 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
 import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
 
-void triggerProfilePage(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ProfileWidget(),
-    ),
-  );
-}
-
-class ProfileWidget extends StatelessWidget {
+class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +13,7 @@ class ProfileWidget extends StatelessWidget {
           children: <Widget>[
             GradientAppBar(
               title: Text(
-                "Profile and Settings",
+                'Profile and Settings',
                 style: Theme.of(context).textTheme.headline,
               ),
               gradient: LinearGradient(
@@ -54,7 +45,7 @@ class ProfilePageContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          "Profile and Settings",
+          'Profile and Settings',
           style: Theme
               .of(context)
               .textTheme
@@ -63,11 +54,12 @@ class ProfilePageContent extends StatelessWidget {
         RaisedButton(
           onPressed: () {
             authService.signOut();
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
+            SchedulerBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(
+                  context, Navigator.defaultRouteName);
+            });
           },
-          child: Text("Logout"),
+          child: Text('Logout'),
           padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           elevation: 5.0,
           color: Colors.blueAccent,
@@ -102,7 +94,14 @@ class _ProfileDisplayState extends State<ProfileDisplay> {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Text("Logged in as ${_profile.toString()}"),
+        Text('Logged in as ${_profile.toString()}'),
+        RaisedButton(
+          child: Text('Debug Page'),
+          onPressed: () {
+            Navigator.pushNamed(context, '/debug');
+          },
+          color: Colors.redAccent,
+        ),
       ],
     );
   }

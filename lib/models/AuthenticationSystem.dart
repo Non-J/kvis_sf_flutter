@@ -11,6 +11,8 @@ class AuthService {
   PublishSubject<bool> loginLoading;
   PublishSubject<String> loginMessage;
 
+  bool isLoggedIn = false;
+
   AuthService() {
     user = Observable(_auth.onAuthStateChanged);
 
@@ -23,9 +25,14 @@ class AuthService {
       if (u != null) {
         _db.collection('users').document(u.uid).get().then((snapshot) {
           profile.add(snapshot.data);
+          loginLoading.add(false);
+        }).catchError((err) {
+          loginMessage.add("Error retrieving user's profile data.");
+          loginLoading.add(false);
         });
       } else {
         profile.add({});
+        loginLoading.add(false);
       }
     });
   }
@@ -43,10 +50,10 @@ class AuthService {
   Future<FirebaseUser> signInBackend(String username, String password) async {
     loginLoading.add(true);
     try {
+      loginMessage.add('');
       AuthResult signIn = await _auth.signInWithEmailAndPassword(
           email: username, password: password);
       updateUserData(signIn.user);
-      loginLoading.add(false);
       return signIn.user;
     } catch (err) {
       loginLoading.add(false);

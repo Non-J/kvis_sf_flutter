@@ -1,10 +1,46 @@
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final FirebaseMessaging _firebaseCloudMessaging = FirebaseMessaging();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _firebaseCloudMessaging.requestNotificationPermissions();
+
+    _firebaseCloudMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        FlashNotification.TopNotification(
+          context,
+          title: Text(message['notification']['title'] ?? 'New Notification'),
+          message: Text(message['notification']['body'] ?? ''),
+        );
+      },
+      onResume: (Map<String, dynamic> message) async {},
+      onLaunch: (Map<String, dynamic> message) async {},
+    );
+
+    authService.profile.listen((data) {
+      if (data.isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +71,7 @@ class LoginPage extends StatelessWidget {
                       Container(
                         margin: EdgeInsets.all(20.0),
                         child: Text(
-                          "Welcome",
+                          'Welcome',
                           style: Theme
                               .of(context)
                               .textTheme
@@ -50,6 +86,13 @@ class LoginPage extends StatelessWidget {
                       ),
                       _LoginForm(),
                       _LegalText(),
+                      RaisedButton(
+                        child: Text('Debug Page'),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/debug');
+                        },
+                        color: Colors.redAccent,
+                      ),
                     ],
                   ),
                 ),
@@ -69,31 +112,35 @@ class _LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<_LoginForm> {
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
+  StreamSubscription _loginLoadingListener, _loginMsgListener;
 
   bool _loggingIn = false;
-  String _loginMsg = "";
+  String _loginMsg = '';
 
   @override
   void initState() {
     super.initState();
 
-    authService.loginLoading
+    _loginLoadingListener = authService.loginLoading
         .listen((state) => setState(() => _loggingIn = state));
 
-    authService.loginMessage
+    _loginMsgListener = authService.loginMessage
         .listen((state) => setState(() => _loginMsg = state));
   }
 
   @override
   void dispose() {
+    _loginLoadingListener.cancel();
+    _loginMsgListener.cancel();
+
     super.dispose();
   }
 
   void _signIn() {
     _formKey.currentState.save();
     if (_formKey.currentState.validate()) {
-      authService.signInBackend(_formKey.currentState.value["username"],
-          _formKey.currentState.value["password"]);
+      authService.signInBackend(_formKey.currentState.value['username'],
+          _formKey.currentState.value['password']);
       return;
     }
   }
@@ -110,7 +157,7 @@ class _LoginFormState extends State<_LoginForm> {
               style: Theme
                   .of(context)
                   .textTheme
-                  .body2),
+                  .body1),
         ),
         Container(
           width: 300.0,
@@ -120,33 +167,33 @@ class _LoginFormState extends State<_LoginForm> {
               Container(
                 margin: EdgeInsets.all(10.0),
                 child: FormBuilderTextField(
-                  attribute: "username",
+                  attribute: 'username',
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Email",
+                    labelText: 'Email',
                     filled: true,
                     fillColor: Color.fromRGBO(255, 255, 255, 0.3),
                   ),
                   validators: [
                     FormBuilderValidators.required(
-                        errorText: "Please enter your email."),
+                        errorText: 'Please enter your email.'),
                   ],
                 ),
               ),
               Container(
                 margin: EdgeInsets.all(10.0),
                 child: FormBuilderTextField(
-                  attribute: "password",
+                  attribute: 'password',
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Password",
+                    labelText: 'Password',
                     filled: true,
                     fillColor: Color.fromRGBO(255, 255, 255, 0.3),
                   ),
                   obscureText: true,
                   validators: [
                     FormBuilderValidators.required(
-                        errorText: "Please enter Password."),
+                        errorText: 'Please enter Password.'),
                   ],
                 ),
               ),
@@ -171,7 +218,7 @@ class _LoginFormState extends State<_LoginForm> {
                 ),
               )
                   : Text(
-                "Login",
+                'Login',
                 textScaleFactor: 1.5,
               )),
             ),
@@ -197,10 +244,10 @@ class _LegalText extends StatelessWidget {
                   .body1,
               children: [
                 TextSpan(
-                  text: "By using this app, you've agreed to our ",
+                  text: 'By using this app, you\'ve agreed to our ',
                 ),
                 TextSpan(
-                  text: "Terms of Use and Privacy Policy.",
+                  text: 'Terms of Use and Privacy Policy.',
                   style: TextStyle(
                     color: Colors.blueAccent,
                     decoration: TextDecoration.underline,
@@ -208,7 +255,7 @@ class _LegalText extends StatelessWidget {
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
                       url_launcher
-                          .launch("http://110.164.80.12/ISSF16/index.php");
+                          .launch('http://110.164.80.12/ISSF16/index.php');
                     },
                 ),
               ],

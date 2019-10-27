@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:kvis_sf/views/DashboardPage.dart';
-import 'package:kvis_sf/views/ProfilePage.dart';
 import 'package:kvis_sf/views/SchedulePage.dart';
 
-class PrimaryHomepage extends StatefulWidget {
-  PrimaryHomepage({Key key}) : super(key: key);
+class primaryHomepage extends StatefulWidget {
+  primaryHomepage({Key key}) : super(key: key);
 
   final PageController pageController = PageController();
 
   final List<BottomNavigationBarItem> navigationBarChildren = [
     BottomNavigationBarItem(
       icon: Icon(Icons.dashboard),
-      title: Text("Dashboard"),
+      title: Text('Dashboard'),
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.calendar_today),
-      title: Text("Schedule"),
+      title: Text('Schedule'),
     ),
   ];
 
@@ -25,10 +24,10 @@ class PrimaryHomepage extends StatefulWidget {
   ];
 
   @override
-  _PrimaryHomepageState createState() => _PrimaryHomepageState();
+  _primaryHomepageState createState() => _primaryHomepageState();
 }
 
-class _PrimaryHomepageState extends State<PrimaryHomepage> {
+class _primaryHomepageState extends State<primaryHomepage> {
   int _pageNumber = 0;
 
   void _goToPage(int index) {
@@ -93,10 +92,10 @@ class _PrimaryHomepageState extends State<PrimaryHomepage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: Text("Profile"),
+        label: Text('Profile'),
         icon: Icon(Icons.person),
         onPressed: () {
-          triggerProfilePage(context);
+          Navigator.pushNamed(context, '/profile');
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

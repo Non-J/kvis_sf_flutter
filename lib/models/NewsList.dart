@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 enum OpenMode { plaintext, markdown, webView, openBrowser }
@@ -24,8 +25,8 @@ Future<List<NewsArticle>> getNewsArticles(String targetUrl) async {
     List<NewsArticle> res = [];
 
     for (final article in json.decode(response.body)) {
-      res.add(NewsArticle(article["id"].toString(), article["title"],
-          article["body"], null, null, OpenMode.plaintext));
+      res.add(NewsArticle(article['id'].toString(), article['title'],
+          article['body'], null, null, OpenMode.plaintext));
     }
 
     return res;

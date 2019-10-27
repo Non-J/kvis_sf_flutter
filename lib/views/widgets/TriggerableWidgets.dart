@@ -4,22 +4,26 @@ import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+class FlashNotificationOverlay extends StatelessWidget {
+  final Widget child;
+
+  FlashNotificationOverlay({@required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Overlay(
+      initialEntries: [
+        OverlayEntry(
+          builder: (context) => child,
+        ),
+      ],
+    );
+    ;
+  }
+}
+
 class FlashNotification {
-  static Completer<BuildContext> _buildCompleter = Completer<BuildContext>();
   static Duration _transitionDuration = const Duration(milliseconds: 250);
-
-  static void init(BuildContext context) {
-    if (_buildCompleter?.isCompleted == false) {
-      _buildCompleter.complete(context);
-    }
-  }
-
-  static void dispose() {
-    if (_buildCompleter?.isCompleted == false) {
-      _buildCompleter.completeError(FlutterError('disposed'));
-    }
-    _buildCompleter = Completer<BuildContext>();
-  }
 
   static Future<T> SimpleDialog<T>(BuildContext context, {
     @required Text title,
@@ -52,7 +56,7 @@ class FlashNotification {
     return showFlash<T>(
       context: context,
       duration: duration,
-      persistent: false,
+      persistent: true,
       transitionDuration: _transitionDuration,
       builder: (_, controller) =>
           Flash(

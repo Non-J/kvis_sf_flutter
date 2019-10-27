@@ -84,12 +84,12 @@ class _NewsArticleListState extends State<NewsArticleList> {
   //  Redo drawing implementation to reduce garbage;
   //  Maybe Add a header?
   Future<List<NewsArticle>> _futurePost =
-      getNewsArticles("https://jsonplaceholder.typicode.com/posts?userId=2");
+  getNewsArticles('https://jsonplaceholder.typicode.com/posts?userId=2');
 
   Future _refreshArticles() {
     setState(() {
       _futurePost = getNewsArticles(
-          "https://jsonplaceholder.typicode.com/posts?userId=2");
+          'https://jsonplaceholder.typicode.com/posts?userId=2');
     });
     return _futurePost;
   }

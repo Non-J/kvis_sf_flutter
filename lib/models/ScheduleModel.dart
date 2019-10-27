@@ -15,11 +15,12 @@ class ScheduledEvent {
   DateTime get endDate => DateTime(this.end.toLocal().year,
       this.end.toLocal().month, this.end.toLocal().day);
 
-  String get beginTimeString => DateFormat("Hm").format(this.begin.toLocal());
+  String get beginTimeString => DateFormat('Hm').format(this.begin.toLocal());
 
   String get endTimeString => (this.beginDate == this.endDate
-      ? DateFormat("Hm").format(this.end.toLocal())
-      : "${DateFormat("d/MMM").format(this.end.toLocal())} ${DateFormat("Hm").format(this.end.toLocal())} ");
+      ? DateFormat('Hm').format(this.end.toLocal())
+      : '${DateFormat('d/MMM').format(this.end.toLocal())} ${DateFormat('Hm')
+      .format(this.end.toLocal())} ');
 }
 
 class ScheduleService {
@@ -38,30 +39,30 @@ class ScheduleService {
   Future reload() {
     _data.clear();
     return _db
-        .collection("schedules")
+        .collection('schedules')
         .getDocuments()
         .then((collectionSnapshot) {
       collectionSnapshot.documents.forEach((document) {
-        if (document.data["events"] is List) {
-          document.data["events"].forEach((elm) {
+        if (document.data['events'] is List) {
+          document.data['events'].forEach((elm) {
             _data.add(ScheduledEvent(
                 id: document.documentID,
-                name: elm["name"] ?? "No Name",
-                location: elm["location"] ?? "No Specified Location",
-                details: elm["details"] ?? "No Specified Details",
-                begin: DateTime.fromMillisecondsSinceEpoch(elm["begin"] ?? 0),
-                end: DateTime.fromMillisecondsSinceEpoch(elm["end"] ?? 0)));
+                name: elm['name'] ?? 'No Name',
+                location: elm['location'] ?? 'No Specified Location',
+                details: elm['details'] ?? 'No Specified Details',
+                begin: DateTime.fromMillisecondsSinceEpoch(elm['begin'] ?? 0),
+                end: DateTime.fromMillisecondsSinceEpoch(elm['end'] ?? 0)));
           });
         } else {
           _data.add(ScheduledEvent(
               id: document.documentID,
-              name: document.data["name"] ?? "No Name",
-              location: document.data["location"] ?? "No Specified Location",
-              details: document.data["details"] ?? "No Specified Details",
+              name: document.data['name'] ?? 'No Name',
+              location: document.data['location'] ?? 'No Specified Location',
+              details: document.data['details'] ?? 'No Specified Details',
               begin: DateTime.fromMillisecondsSinceEpoch(
-                  document.data["begin"] ?? 0),
+                  document.data['begin'] ?? 0),
               end: DateTime.fromMillisecondsSinceEpoch(
-                  document.data["end"] ?? 0)));
+                  document.data['end'] ?? 0)));
         }
       });
     }).then((_) {
