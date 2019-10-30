@@ -206,19 +206,19 @@ class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
 
     _begin = Timer(
         widget.event.begin.difference(DateTime.now()) +
-            Duration(milliseconds: 250),
+            Duration(milliseconds: 10),
         _changeOnGoingState);
 
     _end = Timer(
         widget.event.end.difference(DateTime.now()) +
-            Duration(milliseconds: 250),
+            Duration(milliseconds: 10),
         _changeOnGoingState);
 
     _changeOnGoingState();
 
     _reloadEvent = scheduleService.scheduledEvents.listen((list) {
       // For some reason, if the function is called immediately, the changes doesn't take effect.
-      Timer(Duration(milliseconds: 250), _changeOnGoingState);
+      Timer(Duration(milliseconds: 10), _changeOnGoingState);
     });
   }
 

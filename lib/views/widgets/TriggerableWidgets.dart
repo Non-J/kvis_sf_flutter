@@ -18,7 +18,6 @@ class FlashNotificationOverlay extends StatelessWidget {
         ),
       ],
     );
-    ;
   }
 }
 
@@ -26,8 +25,8 @@ class FlashNotification {
   static Duration _transitionDuration = const Duration(milliseconds: 250);
 
   static Future<T> SimpleDialog<T>(BuildContext context, {
-    @required Text title,
-    @required Text message,
+    @required Widget title,
+    @required Widget message,
   }) {
     return showFlash<T>(
       context: context,
@@ -49,8 +48,8 @@ class FlashNotification {
   }
 
   static Future<T> TopNotification<T>(BuildContext context, {
-    @required Text title,
-    @required Text message,
+    @required Widget title,
+    @required Widget message,
     Duration duration,
   }) {
     return showFlash<T>(
@@ -78,8 +77,8 @@ class FlashNotification {
   }
 
   static Future<T> TopNotificationCritical<T>(BuildContext context, {
-    @required Text title,
-    @required Text message,
+    @required Widget title,
+    @required Widget message,
   }) {
     return showFlash<T>(
       context: context,

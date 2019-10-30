@@ -50,11 +50,16 @@ class _primaryHomepageState extends State<primaryHomepage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              child: Image.asset('images/header-logo.png'),
-              height: 65.0,
-              padding: EdgeInsets.all(5.0),
-              color: Color.fromRGBO(212, 234, 209, 1.0),
+            GestureDetector(
+              onLongPress: () {
+                Navigator.pushNamed(context, '/debug');
+              },
+              child: Container(
+                child: Image.asset('images/header-logo.png'),
+                height: 65.0,
+                padding: EdgeInsets.all(5.0),
+                color: Color.fromRGBO(212, 234, 209, 1.0),
+              ),
             ),
             Expanded(
               child: Container(

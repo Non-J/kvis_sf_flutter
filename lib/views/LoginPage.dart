@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/views/widgets/ScrollBehaviors.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
@@ -33,12 +34,6 @@ class _LoginPageState extends State<LoginPage> {
       onResume: (Map<String, dynamic> message) async {},
       onLaunch: (Map<String, dynamic> message) async {},
     );
-
-    authService.profile.listen((data) {
-      if (data.isNotEmpty) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    });
   }
 
   @override
@@ -59,41 +54,43 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: SafeArea(
           child: Center(
-            child: SingleChildScrollView(
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  alignment: Alignment(0.0, 0.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: EdgeInsets.all(20.0),
-                        child: Text(
-                          'Welcome',
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .display2
-                              .apply(color: Color.fromRGBO(127, 206, 172, 1.0)),
+            child: ScrollConfiguration(
+              behavior: NoGrowScrollBehavior(),
+              child: SingleChildScrollView(
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    alignment: Alignment(0.0, 0.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.all(20.0),
+                          child: Text(
+                            'Welcome',
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .display2
+                                .apply(
+                                color: Color.fromRGBO(127, 206, 172, 1.0)),
+                          ),
                         ),
-                      ),
-                      Container(
-                        child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
-                        height: 300.0,
-                        padding: EdgeInsets.all(5.0),
-                      ),
-                      _LoginForm(),
-                      _LegalText(),
-                      RaisedButton(
-                        child: Text('Debug Page'),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/debug');
-                        },
-                        color: Colors.redAccent,
-                      ),
-                    ],
+                        Container(
+                          child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
+                          height: 300.0,
+                          padding: EdgeInsets.all(5.0),
+                        ),
+                        _LoginForm(),
+                        GestureDetector(
+                          onLongPress: () {
+                            Navigator.pushNamed(context, '/debug');
+                          },
+                          child: _LegalText(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -112,7 +109,9 @@ class _LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<_LoginForm> {
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
-  StreamSubscription _loginLoadingListener, _loginMsgListener;
+  StreamSubscription _loginLoadingListener,
+      _loginMsgListener,
+      _authServiceRedirect;
 
   bool _loggingIn = false;
   String _loginMsg = '';
@@ -126,12 +125,19 @@ class _LoginFormState extends State<_LoginForm> {
 
     _loginMsgListener = authService.loginMessage
         .listen((state) => setState(() => _loginMsg = state));
+
+    _authServiceRedirect = authService.user.listen((data) {
+      if (data != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
   }
 
   @override
   void dispose() {
     _loginLoadingListener.cancel();
     _loginMsgListener.cancel();
+    _authServiceRedirect.cancel();
 
     super.dispose();
   }

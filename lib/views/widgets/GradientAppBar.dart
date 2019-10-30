@@ -4,8 +4,12 @@ class GradientAppBar extends StatelessWidget {
   final Widget title;
   final double barHeight;
   final Gradient gradient;
+  final Widget rightAlignedButton;
 
-  GradientAppBar({this.title, this.barHeight: 60.0, this.gradient});
+  GradientAppBar({this.title,
+    this.barHeight: 60.0,
+    this.gradient,
+    this.rightAlignedButton});
 
   @override
   Widget build(BuildContext context) {
@@ -16,19 +20,13 @@ class GradientAppBar extends StatelessWidget {
       height: statusbarHeight + barHeight,
       child: Row(
         children: <Widget>[
-          InkWell(
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Icon(Icons.arrow_back),
-            ),
-            onTap: () {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-            },
-          ),
+          BackButton(),
           Container(
               margin: EdgeInsets.symmetric(horizontal: 16.0), child: title),
+          Spacer(),
+          Container(
+              margin: EdgeInsets.symmetric(horizontal: 16.0),
+              child: rightAlignedButton),
         ],
       ),
       decoration: BoxDecoration(
