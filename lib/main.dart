@@ -2,6 +2,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kvis_sf/views/DebugMenu.dart';
+import 'package:kvis_sf/views/Landings.dart';
 import 'package:kvis_sf/views/LoginPage.dart';
 import 'package:kvis_sf/views/PrimaryHomepage.dart';
 import 'package:kvis_sf/views/ProfilePage.dart';
@@ -41,11 +42,12 @@ class _MyAppState extends State<MyApp> {
           tall: Typography.tall2018,
         ),
       ),
-      home: LoginPage(),
+      home: LandingWidget(),
       routes: {
         '/home': (context) => primaryHomepage(),
         '/profile': (context) => ProfilePage(),
         '/debug': (context) => DebugPage(),
+        '/login': (context) => LoginPage(),
       },
     );
   }

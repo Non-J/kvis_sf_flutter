@@ -5,6 +5,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
 import 'package:kvis_sf/models/EventStreams.dart';
 import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
+import 'package:kvis_sf/views/widgets/LegalText.dart';
 
 class ProfilePage extends StatelessWidget {
   @override
@@ -38,6 +39,7 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
             ),
+            LegalText(),
           ],
         ),
       ),
@@ -53,8 +55,30 @@ class ProfileEditModeSwitch extends StatefulWidget {
 class _ProfileEditModeSwitchState extends State<ProfileEditModeSwitch> {
   bool _editMode = false;
 
+  StreamSubscription _profileSubscription;
+  UserProfile _profile;
+
+  @override
+  initState() {
+    super.initState();
+    _profileSubscription = authService.profileStream
+        .listen((state) => setState(() => _profile = state));
+  }
+
+  @override
+  void dispose() {
+    _profileSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_profile == null ||
+        _profile.user == null ||
+        _profile.user.isAnonymous) {
+      return Container();
+    }
+
     return OutlineButton(
       child: Text(
         _editMode ? 'Done' : 'Edit',
@@ -88,8 +112,8 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
   @override
   initState() {
     super.initState();
-    _profileSubscription =
-        authService.profile.listen((state) => setState(() => _profile = state));
+    _profileSubscription = authService.profileStream
+        .listen((state) => setState(() => _profile = state));
   }
 
   @override
@@ -100,12 +124,56 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
 
   @override
   Widget build(BuildContext context) {
-    if (_profile == null || _profile.isEmpty) {
+    if (_profile == null) {
+      // Data not ready
       return Center(
         child: CircularProgressIndicator(),
       );
     }
 
+    if (_profile.user == null || _profile.user.isAnonymous) {
+      // Not signed-in
+      return Center(
+        child: FittedBox(
+          fit: BoxFit.contain,
+          alignment: Alignment(0.0, 0.0),
+          child: Column(
+            children: <Widget>[
+              Container(
+                margin: EdgeInsets.all(20.0),
+                child: Text(
+                  'Please sign in to view your profile.',
+                  style: Theme
+                      .of(context)
+                      .textTheme
+                      .display1,
+                ),
+              ),
+              RaisedButton(
+                onPressed: () async {
+                  await authService.signOut();
+                  Navigator.of(context).popUntil(ModalRoute.withName('/home'));
+                  Navigator.of(context).pushReplacementNamed('/login');
+                },
+                child: Text(
+                  'Sign in',
+                  textScaleFactor: 1.5,
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 30.0,
+                  vertical: 15.0,
+                ),
+                elevation: 5.0,
+                color: Colors.blueAccent,
+                textColor: Colors.white,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Signed-in and data ready
     return Column(
       children: <Widget>[
         _profile.profilePicture == null
@@ -130,12 +198,16 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
           thickness: 3.0,
         ),
         RaisedButton(
-          onPressed: () {
-            authService.signOut();
-            Navigator.pushReplacementNamed(context, Navigator.defaultRouteName);
+          onPressed: () async {
+            await authService.signOut();
+            Navigator.of(context).popUntil(ModalRoute.withName('/home'));
+            Navigator.of(context).pushReplacementNamed('/login');
           },
-          child: Text('Logout'),
-          padding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+          child: Text('Sign out'),
+          padding: EdgeInsets.symmetric(
+            horizontal: 20.0,
+            vertical: 10.0,
+          ),
           elevation: 5.0,
           color: Colors.redAccent,
           textColor: Colors.white,
@@ -165,7 +237,7 @@ class _ProfileEditFormState extends State<ProfileEditForm> {
   initState() {
     super.initState();
 
-    _profileSubscription = authService.profile.listen((newProfile) {
+    _profileSubscription = authService.profileStream.listen((newProfile) {
       setState(() => _profile = newProfile);
     });
 
@@ -189,7 +261,7 @@ class _ProfileEditFormState extends State<ProfileEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    if (_profile == null || _profile.isEmpty) {
+    if (_profile == null || _profile.data.isEmpty) {
       return Container();
     }
 
@@ -201,7 +273,7 @@ class _ProfileEditFormState extends State<ProfileEditForm> {
         readOnly: !_editMode,
         initialValue: {
           ..._profile.data,
-          'age': _profile.data['age'].toString()
+          'age': _profile.data['age'].round().toString(),
         },
         child: Column(
           children: <Widget>[
@@ -279,6 +351,18 @@ class _ProfileEditFormState extends State<ProfileEditForm> {
               ],
             ),
             FormBuilderTextField(
+              attribute: 'status',
+              decoration: InputDecoration(
+                border: UnderlineInputBorder(),
+                labelText: 'Status',
+              ),
+              validators: [
+                FormBuilderValidators.required(
+                    errorText: 'Status cannot be empty.'),
+              ],
+              readOnly: true,
+            ),
+            FormBuilderTextField(
               attribute: 'school',
               decoration: InputDecoration(
                 border: UnderlineInputBorder(),
@@ -291,6 +375,10 @@ class _ProfileEditFormState extends State<ProfileEditForm> {
                 border: UnderlineInputBorder(),
                 labelText: 'Country',
               ),
+              validators: [
+                FormBuilderValidators.required(
+                    errorText: 'Country cannot be empty.'),
+              ],
             ),
             FormBuilderTextField(
               attribute: 'informations',

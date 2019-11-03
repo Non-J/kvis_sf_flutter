@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/views/widgets/LegalText.dart';
 import 'package:kvis_sf/views/widgets/ScrollBehaviors.dart';
-import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
-import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,25 +12,42 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final FirebaseMessaging _firebaseCloudMessaging = FirebaseMessaging();
+  final GlobalKey<FormBuilderState> _signinFormKey =
+  GlobalKey<FormBuilderState>();
+
+  StreamSubscription _authServiceRedirect,
+      _loginLoadingListener,
+      _loginMsgListener;
+
+  bool _loggingIn = false;
+  String _loginMsg = '';
 
   @override
   void initState() {
     super.initState();
 
-    _firebaseCloudMessaging.requestNotificationPermissions();
+    _loginLoadingListener = authService.loginLoading
+        .listen((state) => setState(() => _loggingIn = state));
 
-    _firebaseCloudMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        FlashNotification.TopNotification(
-          context,
-          title: Text(message['notification']['title'] ?? 'New Notification'),
-          message: Text(message['notification']['body'] ?? ''),
-        );
-      },
-      onResume: (Map<String, dynamic> message) async {},
-      onLaunch: (Map<String, dynamic> message) async {},
-    );
+    _loginMsgListener = authService.loginMessage
+        .listen((state) => setState(() => _loginMsg = state));
+
+    _authServiceRedirect = authService.profileStream.listen((profile) {
+      if (profile.user != null) {
+        Future(() {
+          Navigator.of(context).pushReplacementNamed('/home');
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authServiceRedirect.cancel();
+    _loginLoadingListener.cancel();
+    _loginMsgListener.cancel();
+
+    super.dispose();
   }
 
   @override
@@ -82,12 +96,49 @@ class _LoginPageState extends State<LoginPage> {
                           height: 300.0,
                           padding: EdgeInsets.all(5.0),
                         ),
-                        _LoginForm(),
+                        Container(
+                          margin: EdgeInsets.all(20.0),
+                          width: 500.0,
+                          child: Text(_loginMsg,
+                              textAlign: TextAlign.center,
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .body1),
+                        ),
+                        SigninForm(
+                            signinFormKey: _signinFormKey,
+                            loggingInState: _loggingIn),
+                        Container(
+                          width: 120.0,
+                          height: 45.0,
+                          margin: EdgeInsets.all(10.0),
+                          child: RaisedButton(
+                              onPressed: _loggingIn
+                                  ? null
+                                  : () {
+                                authService.signInAnonymously();
+                              },
+                              color: Colors.blueAccent,
+                              textColor: Colors.white,
+                              child: _loggingIn
+                                  ? Container(
+                                height: 25.0,
+                                width: 25.0,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation(
+                                      Colors.white),
+                                ),
+                              )
+                                  : Text(
+                                'Skip sign-in',
+                              )),
+                        ),
                         GestureDetector(
                           onLongPress: () {
                             Navigator.pushNamed(context, '/debug');
                           },
-                          child: _LegalText(),
+                          child: LegalText(),
                         ),
                       ],
                     ),
@@ -102,73 +153,27 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class _LoginForm extends StatefulWidget {
-  @override
-  _LoginFormState createState() => _LoginFormState();
-}
+class SigninForm extends StatelessWidget {
+  const SigninForm({
+    Key key,
+    @required GlobalKey<FormBuilderState> signinFormKey,
+    @required bool loggingInState,
+  })
+      : _signinFormKey = signinFormKey,
+        _loggingInState = loggingInState,
+        super(key: key);
 
-class _LoginFormState extends State<_LoginForm> {
-  final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
-  StreamSubscription _loginLoadingListener,
-      _loginMsgListener,
-      _authServiceRedirect;
-
-  bool _loggingIn = false;
-  String _loginMsg = '';
-
-  @override
-  void initState() {
-    super.initState();
-
-    _loginLoadingListener = authService.loginLoading
-        .listen((state) => setState(() => _loggingIn = state));
-
-    _loginMsgListener = authService.loginMessage
-        .listen((state) => setState(() => _loginMsg = state));
-
-    _authServiceRedirect = authService.user.listen((data) {
-      if (data != null) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _loginLoadingListener.cancel();
-    _loginMsgListener.cancel();
-    _authServiceRedirect.cancel();
-
-    super.dispose();
-  }
-
-  void _signIn() {
-    _formKey.currentState.save();
-    if (_formKey.currentState.validate()) {
-      authService.signInBackend(_formKey.currentState.value['username'],
-          _formKey.currentState.value['password']);
-      return;
-    }
-  }
+  final GlobalKey<FormBuilderState> _signinFormKey;
+  final bool _loggingInState;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
         Container(
-          margin: EdgeInsets.all(20.0),
-          width: 500.0,
-          child: Text(_loginMsg,
-              textAlign: TextAlign.center,
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .body1),
-        ),
-        Container(
           width: 300.0,
           child: FormBuilder(
-            key: _formKey,
+            key: _signinFormKey,
             child: Column(children: <Widget>[
               Container(
                 margin: EdgeInsets.all(10.0),
@@ -211,11 +216,21 @@ class _LoginFormState extends State<_LoginForm> {
           height: 45.0,
           margin: EdgeInsets.all(10.0),
           child: RaisedButton(
-            onPressed: (_loggingIn ? null : _signIn),
+            onPressed: (_loggingInState
+                ? null
+                : () {
+              _signinFormKey.currentState.save();
+              if (_signinFormKey.currentState.validate()) {
+                authService.signInBackend(
+                    _signinFormKey.currentState.value['username'],
+                    _signinFormKey.currentState.value['password']);
+                return;
+              }
+            }),
             color: Colors.blueAccent,
             textColor: Colors.white,
             child: Center(
-              child: (_loggingIn
+              child: (_loggingInState
                   ? Container(
                 height: 25.0,
                 width: 25.0,
@@ -227,44 +242,6 @@ class _LoginFormState extends State<_LoginForm> {
                 'Login',
                 textScaleFactor: 1.5,
               )),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LegalText extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Container(
-          margin: EdgeInsets.all(20.0),
-          child: RichText(
-            text: TextSpan(
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .body1,
-              children: [
-                TextSpan(
-                  text: 'By using this app, you\'ve agreed to our ',
-                ),
-                TextSpan(
-                  text: 'Terms of Use and Privacy Policy.',
-                  style: TextStyle(
-                    color: Colors.blueAccent,
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      url_launcher
-                          .launch('http://110.164.80.12/ISSF16/index.php');
-                    },
-                ),
-              ],
             ),
           ),
         ),

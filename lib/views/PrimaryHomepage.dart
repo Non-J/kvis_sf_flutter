@@ -99,8 +99,8 @@ class _primaryHomepageState extends State<primaryHomepage> {
       floatingActionButton: FloatingActionButton.extended(
         label: Text('Profile'),
         icon: Icon(Icons.person),
-        onPressed: () {
-          Navigator.pushNamed(context, '/profile');
+        onPressed: () async {
+          Navigator.of(context).pushNamed('/profile');
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

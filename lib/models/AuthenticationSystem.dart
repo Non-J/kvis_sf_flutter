@@ -9,14 +9,15 @@ class UserProfile {
   static Firestore _db = Firestore.instance;
 
   final FirebaseUser user;
+  String userProfileType;
   Map<String, dynamic> data = {};
   StorageReference profileStorage;
   File profilePicture;
 
   UserProfile._(this.user);
 
-  static UserProfile empty() {
-    return UserProfile._(null);
+  static UserProfile empty(FirebaseUser user) {
+    return UserProfile._(user);
   }
 
   static Future<UserProfile> init(FirebaseUser user) async {
@@ -25,6 +26,8 @@ class UserProfile {
     DocumentSnapshot data =
     await _db.collection('users').document(user.uid).get();
     userProfile.data.addAll(data.data);
+
+    userProfile.userProfileType = userProfile.data['status'] ?? 'Student';
 
     userProfile.profileStorage =
         FirebaseStorage.instance.ref().child('profiles/${user.uid}');
@@ -48,8 +51,6 @@ class UserProfile {
     return Future.value(userProfile);
   }
 
-  bool get isEmpty => (user == null);
-
   @override
   String toString() {
     return 'UserProfile{user: $user, _data: $data, profileStorage: $profileStorage, profilePicture: $profilePicture}';
@@ -60,46 +61,77 @@ class AuthService {
   static FirebaseAuth _auth = FirebaseAuth.instance;
   static Firestore _db = Firestore.instance;
 
-  FirebaseUser _currentUser;
-  Observable<FirebaseUser> user = Observable(_auth.onAuthStateChanged);
-  BehaviorSubject<UserProfile> profile =
-  BehaviorSubject<UserProfile>.seeded(UserProfile.empty());
+  FirebaseUser user;
+  Observable<FirebaseUser> userStream = Observable(_auth.onAuthStateChanged);
+
+  UserProfile profile;
+  BehaviorSubject<UserProfile> profileStream =
+  BehaviorSubject<UserProfile>.seeded(UserProfile.empty(null));
+
   PublishSubject<bool> loginLoading = PublishSubject();
   PublishSubject<String> loginMessage = PublishSubject();
 
   AuthService() {
-    user.listen((FirebaseUser firebaseUser) async {
-      _currentUser = firebaseUser;
-      if (_currentUser != null) {
+    userStream.listen((FirebaseUser firebaseUser) async {
+      user = firebaseUser;
+      if (firebaseUser != null && !firebaseUser.isAnonymous) {
         try {
-          profile.add(await UserProfile.init(_currentUser));
+          await reloadProfile();
           loginLoading.add(false);
           loginMessage.add('Sending you to homepage.');
         } catch (e) {
           loginLoading.add(false);
           loginMessage.add('Error retrieving user\'s profile data.');
         }
+      } else if (firebaseUser != null && firebaseUser.isAnonymous) {
+        profileStream.add(UserProfile.empty(firebaseUser));
+        loginLoading.add(false);
+        loginMessage.add('Sending you to homepage.');
       } else {
-        profile.add(UserProfile.empty());
+        profileStream.add(UserProfile.empty(firebaseUser));
         loginLoading.add(false);
         loginMessage.add('Please sign-in');
       }
     });
   }
 
-  void signOut() {
-    _auth.signOut();
+  Future signOut() async {
+    if (user != null && user.isAnonymous) {
+      return user.delete();
+    } else {
+      await _auth.signOut();
+      return Future.value();
+    }
   }
 
-  Future<FirebaseUser> signInAnonymously(String username, String password) async {
-    throw 'This sign-in method has been disabled.';
+  Future<FirebaseUser> signInAnonymously() async {
+    loginLoading.add(true);
+    loginMessage.add('');
+
+    if (user != null) {
+      await signOut();
+    }
+
+    try {
+      final AuthResult signIn = await _auth.signInAnonymously();
+      return signIn.user;
+    } catch (err) {
+      loginLoading.add(false);
+      loginMessage.add('Sign-in Failed.\n${err.toString()}');
+      return null;
+    }
   }
 
   Future<FirebaseUser> signInBackend(String username, String password) async {
     loginLoading.add(true);
     loginMessage.add('');
+
+    if (user != null) {
+      await signOut();
+    }
+
     try {
-      AuthResult signIn = await _auth.signInWithEmailAndPassword(
+      final AuthResult signIn = await _auth.signInWithEmailAndPassword(
           email: username, password: password);
       return signIn.user;
     } catch (err) {
@@ -123,12 +155,13 @@ class AuthService {
   }
 
   Future<void> reloadProfile() async {
-    profile.add(await UserProfile.init(_currentUser));
+    profile = await UserProfile.init(user);
+    profileStream.add(profile);
     return Future.value();
   }
 
   Future<void> updateProfile(Map<String, dynamic> newData) {
-    DocumentReference ref = _db.collection('users').document(_currentUser.uid);
+    DocumentReference ref = _db.collection('users').document(user.uid);
     ref.setData(newData, merge: true);
 
     return reloadProfile();

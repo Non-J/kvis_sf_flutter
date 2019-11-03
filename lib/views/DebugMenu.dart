@@ -66,10 +66,11 @@ class _DebugPageContentState extends State<DebugPageContent> {
   initState() {
     super.initState();
 
-    _profileSubscription = authService.profile.listen((state) =>
-        setState(() {
-          _profile = state;
-        }));
+    _profileSubscription =
+        authService.profileStream.listen((state) =>
+            setState(() {
+              _profile = state;
+            }));
 
     _firebaseCloudMessaging.getToken().then((token) {
       setState(() {
@@ -103,6 +104,11 @@ class _DebugPageContentState extends State<DebugPageContent> {
             .of(context)
             .textTheme
             .title),
+        SelectableText(authService.user.toString(),
+            style: Theme
+                .of(context)
+                .textTheme
+                .body2),
         SelectableText(_profile.toString(),
             style: Theme
                 .of(context)
