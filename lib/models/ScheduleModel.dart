@@ -1,6 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:kvis_sf/models/AuthenticationSystem.dart';
 import 'package:rxdart/rxdart.dart';
+
+class QueryProfilePair {
+  QueryProfilePair(this.left, this.right);
+
+  final List<DocumentSnapshot> left;
+  final UserProfile right;
+}
 
 class ScheduledEvent {
   final String id, name, location, details;
@@ -21,56 +29,69 @@ class ScheduledEvent {
       ? DateFormat('Hm').format(this.end.toLocal())
       : '${DateFormat('d/MMM').format(this.end.toLocal())} ${DateFormat('Hm')
       .format(this.end.toLocal())} ');
+
+  @override
+  String toString() {
+    return 'ScheduledEvent: $name, $location, $details, $beginDate, $endDate';
+  }
 }
 
 class ScheduleService {
   final Firestore _db = Firestore.instance;
 
-  List<ScheduledEvent> _data;
+  BehaviorSubject<List<ScheduledEvent>> _eventsSubject = BehaviorSubject();
 
-  BehaviorSubject<List<ScheduledEvent>> scheduledEvents;
+  Observable<List<ScheduledEvent>> get eventsStream => _eventsSubject.stream;
+
+  Observable<Map<DateTime, List<ScheduledEvent>>> get datedEventsStream =>
+      _eventsSubject.stream.map((events) {
+        Map<DateTime, List<ScheduledEvent>> result = {};
+        events.forEach((event) {
+          result.putIfAbsent(event.beginDate, () => []).add(event);
+        });
+        return result;
+      });
 
   ScheduleService() {
-    _data = [];
-    scheduledEvents = BehaviorSubject<List<ScheduledEvent>>.seeded(_data);
-    reload();
+    _eventsSubject.addStream(Observable.combineLatest2(
+        _db.collection('schedules').snapshots(),
+        authService.profileStream,
+            (query, profile) => QueryProfilePair(query.documents, profile))
+    // Filter for targeted audience
+        .map((pair) =>
+        pair.left
+            .where((doc) =>
+        doc.data['audience'] ==
+            (pair.right.userProfileType ?? 'Student'))
+            .toList(growable: false))
+    // Extract individual event entry
+        .map((docs) {
+      List<Map<String, dynamic>> result = [];
+      docs.forEach((doc) {
+        (doc.data['events'] ?? []).forEach((entry) {
+          result.add(Map<String, dynamic>.from(entry));
+        });
+      });
+      return result;
+      // Turn raw event entry into ScheduledEvent
+    }).map((entries) {
+      List<ScheduledEvent> result = [];
+      entries.forEach((entry) {
+        result.add(ScheduledEvent(
+            id: '',
+            name: entry['name'] ?? 'No Name',
+            location: entry['location'] ?? 'No Specified Location',
+            details: entry['details'] ?? 'No Specified Details',
+            begin: DateTime.fromMillisecondsSinceEpoch(entry['begin'] ?? 0),
+            end: DateTime.fromMillisecondsSinceEpoch(entry['end'] ?? 0)));
+      });
+      return result;
+      // Map by date
+    }));
   }
 
-  Future reload() {
-    _data.clear();
-    return _db
-        .collection('schedules')
-        .getDocuments()
-        .then((collectionSnapshot) {
-      collectionSnapshot.documents.forEach((document) {
-        if (document.data['events'] is List) {
-          document.data['events'].forEach((elm) {
-            _data.add(ScheduledEvent(
-                id: document.documentID,
-                name: elm['name'] ?? 'No Name',
-                location: elm['location'] ?? 'No Specified Location',
-                details: elm['details'] ?? 'No Specified Details',
-                begin: DateTime.fromMillisecondsSinceEpoch(elm['begin'] ?? 0),
-                end: DateTime.fromMillisecondsSinceEpoch(elm['end'] ?? 0)));
-          });
-        } else {
-          _data.add(ScheduledEvent(
-              id: document.documentID,
-              name: document.data['name'] ?? 'No Name',
-              location: document.data['location'] ?? 'No Specified Location',
-              details: document.data['details'] ?? 'No Specified Details',
-              begin: DateTime.fromMillisecondsSinceEpoch(
-                  document.data['begin'] ?? 0),
-              end: DateTime.fromMillisecondsSinceEpoch(
-                  document.data['end'] ?? 0)));
-        }
-      });
-    }).then((_) {
-      scheduledEvents.add(_data);
-    }).catchError((err) {
-      // TODO: Handle DB errors
-      throw err;
-    });
+  void dispose() {
+    _eventsSubject.close();
   }
 }
 

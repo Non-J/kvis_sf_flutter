@@ -46,41 +46,41 @@ class _primaryHomepageState extends State<primaryHomepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GestureDetector(
-              onLongPress: () {
-                Navigator.pushNamed(context, '/debug');
-              },
-              child: Container(
-                child: Image.asset('images/header-logo.png'),
-                height: 65.0,
-                padding: EdgeInsets.all(5.0),
-                color: Color.fromRGBO(212, 234, 209, 1.0),
-              ),
-            ),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: [0.0, 1.0],
-                    colors: [
-                      Color.fromRGBO(212, 234, 209, 1.0),
-                      Color.fromRGBO(184, 213, 233, 1.0),
-                    ],
-                  ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 1.0],
+            colors: [
+              Color.fromRGBO(212, 234, 209, 1.0),
+              Color.fromRGBO(184, 213, 233, 1.0),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GestureDetector(
+                onLongPress: () {
+                  Navigator.pushNamed(context, '/debug');
+                },
+                child: Container(
+                  child: Image.asset('images/header-logo.png'),
+                  height: 65.0,
+                  padding: EdgeInsets.all(5.0),
+                  color: Color.fromRGBO(212, 234, 209, 1.0),
                 ),
+              ),
+              Expanded(
                 child: PageView(
                     controller: widget.pageController,
                     onPageChanged: _changedPage,
                     children: widget.children),
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Container(

@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/models/ScheduleModel.dart';
 import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 
@@ -104,11 +105,8 @@ class _DebugPageContentState extends State<DebugPageContent> {
             .of(context)
             .textTheme
             .title),
-        SelectableText(authService.user.toString(),
-            style: Theme
-                .of(context)
-                .textTheme
-                .body2),
+        //SelectableText(authService.user.toString(),
+        //    style: Theme.of(context).textTheme.body2),
         SelectableText(_profile.toString(),
             style: Theme
                 .of(context)
@@ -136,6 +134,16 @@ class _DebugPageContentState extends State<DebugPageContent> {
             color: Colors.redAccent,
             textColor: Colors.white,
           ),
+        ),
+        Text('Schedules', style: Theme
+            .of(context)
+            .textTheme
+            .title),
+        StreamBuilder(
+          stream: scheduleService.datedEventsStream,
+          builder: (context, snapshot) {
+            return SelectableText(snapshot.data.toString());
+          },
         ),
         Divider(height: 10.0),
         Text('Trigger Tests', style: Theme

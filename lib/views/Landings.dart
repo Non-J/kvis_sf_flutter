@@ -1,9 +1,7 @@
-import 'dart:async';
-
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
+import 'package:kvis_sf/models/Notification.dart';
 
 class LandingWidget extends StatefulWidget {
   @override
@@ -11,43 +9,14 @@ class LandingWidget extends StatefulWidget {
 }
 
 class _LandingWidgetState extends State<LandingWidget> {
-  final FirebaseMessaging _firebaseCloudMessaging = FirebaseMessaging();
-  StreamSubscription _authServiceRedirect;
-
   @override
   void initState() {
     super.initState();
-
-    _firebaseCloudMessaging.requestNotificationPermissions();
-
-    _firebaseCloudMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        FlashNotification.TopNotification(
-          context,
-          title: Text(message['notification']['title'] ?? 'New Notification'),
-          message: Text(message['notification']['body'] ?? ''),
-        );
-      },
-      onResume: (Map<String, dynamic> message) async {},
-      onLaunch: (Map<String, dynamic> message) async {},
-    );
-
-    _authServiceRedirect = authService.userStream.listen((user) {
-      if (user == null) {
-        Future(() {
-          Navigator.of(context).pushReplacementNamed('/login');
-        });
-      } else {
-        Future(() {
-          Navigator.of(context).pushReplacementNamed('/home');
-        });
-      }
-    });
+    notificationService.requestPermission();
   }
 
   @override
   void dispose() {
-    _authServiceRedirect.cancel();
     super.dispose();
   }
 
@@ -69,7 +38,34 @@ class _LandingWidgetState extends State<LandingWidget> {
         ),
         child: SafeArea(
           child: Center(
-            child: CircularProgressIndicator(),
+            child: StreamBuilder(
+              stream: authService.userStream,
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                  case ConnectionState.waiting:
+                    break;
+                  case ConnectionState.active:
+                  case ConnectionState.done:
+                    if (snapshot.hasError) {
+                      return SelectableText(
+                          'An error occured in the authenticaiton system.\n${snapshot
+                              .error.toString()}');
+                    } else if (snapshot.hasData) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      });
+                    } else {
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      });
+                    }
+                    break;
+                }
+
+                return CircularProgressIndicator();
+              },
+            ),
           ),
         ),
       ),

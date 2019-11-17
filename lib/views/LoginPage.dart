@@ -1,55 +1,13 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:kvis_sf/models/AuthenticationSystem.dart';
 import 'package:kvis_sf/views/widgets/LegalText.dart';
 import 'package:kvis_sf/views/widgets/ScrollBehaviors.dart';
 
-class LoginPage extends StatefulWidget {
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final GlobalKey<FormBuilderState> _signinFormKey =
-  GlobalKey<FormBuilderState>();
-
-  StreamSubscription _authServiceRedirect,
-      _loginLoadingListener,
-      _loginMsgListener;
-
-  bool _loggingIn = false;
-  String _loginMsg = '';
-
-  @override
-  void initState() {
-    super.initState();
-
-    _loginLoadingListener = authService.loginLoading
-        .listen((state) => setState(() => _loggingIn = state));
-
-    _loginMsgListener = authService.loginMessage
-        .listen((state) => setState(() => _loginMsg = state));
-
-    _authServiceRedirect = authService.profileStream.listen((profile) {
-      if (profile.user != null) {
-        Future(() {
-          Navigator.of(context).pushReplacementNamed('/home');
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _authServiceRedirect.cancel();
-    _loginLoadingListener.cancel();
-    _loginMsgListener.cancel();
-
-    super.dispose();
-  }
-
+class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,44 +54,7 @@ class _LoginPageState extends State<LoginPage> {
                           height: 300.0,
                           padding: EdgeInsets.all(5.0),
                         ),
-                        Container(
-                          margin: EdgeInsets.all(20.0),
-                          width: 500.0,
-                          child: Text(_loginMsg,
-                              textAlign: TextAlign.center,
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .body1),
-                        ),
-                        SigninForm(
-                            signinFormKey: _signinFormKey,
-                            loggingInState: _loggingIn),
-                        Container(
-                          width: 120.0,
-                          height: 45.0,
-                          margin: EdgeInsets.all(10.0),
-                          child: RaisedButton(
-                              onPressed: _loggingIn
-                                  ? null
-                                  : () {
-                                authService.signInAnonymously();
-                              },
-                              color: Colors.blueAccent,
-                              textColor: Colors.white,
-                              child: _loggingIn
-                                  ? Container(
-                                height: 25.0,
-                                width: 25.0,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(
-                                      Colors.white),
-                                ),
-                              )
-                                  : Text(
-                                'Skip sign-in',
-                              )),
-                        ),
+                        SigninForm(),
                         GestureDetector(
                           onLongPress: () {
                             Navigator.pushNamed(context, '/debug');
@@ -153,18 +74,34 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class SigninForm extends StatelessWidget {
-  const SigninForm({
-    Key key,
-    @required GlobalKey<FormBuilderState> signinFormKey,
-    @required bool loggingInState,
-  })
-      : _signinFormKey = signinFormKey,
-        _loggingInState = loggingInState,
-        super(key: key);
+class SigninForm extends StatefulWidget {
+  @override
+  _SigninFormState createState() => _SigninFormState();
+}
 
-  final GlobalKey<FormBuilderState> _signinFormKey;
-  final bool _loggingInState;
+class _SigninFormState extends State<SigninForm> {
+  final GlobalKey<FormBuilderState> _signinFormKey =
+  GlobalKey<FormBuilderState>();
+  StreamSubscription _redirectSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _redirectSubscription = authService.userStream.listen((FirebaseUser user) {
+      if (user != null) {
+        Future(() {
+          Navigator.of(context).pushReplacementNamed('/home');
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _redirectSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,39 +148,84 @@ class SigninForm extends StatelessWidget {
             ]),
           ),
         ),
-        Container(
-          width: 120.0,
-          height: 45.0,
-          margin: EdgeInsets.all(10.0),
-          child: RaisedButton(
-            onPressed: (_loggingInState
-                ? null
-                : () {
-              _signinFormKey.currentState.save();
-              if (_signinFormKey.currentState.validate()) {
-                authService.signInBackend(
-                    _signinFormKey.currentState.value['username'],
-                    _signinFormKey.currentState.value['password']);
-                return;
-              }
-            }),
-            color: Colors.blueAccent,
-            textColor: Colors.white,
-            child: Center(
-              child: (_loggingInState
-                  ? Container(
-                height: 25.0,
-                width: 25.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
+        StreamBuilder(
+          stream: authService.signingInStatus,
+          builder:
+              (BuildContext context, AsyncSnapshot<SigningInStatus> snapshot) {
+            String _displayMessage = '';
+            bool _lockButton = false;
+
+            if (snapshot.hasError) {
+              _displayMessage =
+              'An error occured while checking sign in status.\n${snapshot.error
+                  .toString()}';
+            } else if (snapshot.hasData) {
+              _lockButton = snapshot.data.loading;
+              _displayMessage = snapshot.data.message;
+            }
+
+            return Column(
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.all(20.0),
+                  width: 500.0,
+                  child: Text(_displayMessage,
+                      textAlign: TextAlign.center,
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .body1),
                 ),
-              )
-                  : Text(
-                'Login',
-                textScaleFactor: 1.5,
-              )),
-            ),
-          ),
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 120.0,
+                      height: 45.0,
+                      margin: EdgeInsets.all(10.0),
+                      child: RaisedButton(
+                          onPressed: _lockButton
+                              ? null
+                              : () {
+                            authService.signInAnonymously();
+                          },
+                          color: Colors.blueAccent,
+                          textColor: Colors.white,
+                          child: Text(
+                            'Skip sign-in',
+                          )),
+                    ),
+                    Container(
+                      width: 120.0,
+                      height: 45.0,
+                      margin: EdgeInsets.all(10.0),
+                      child: RaisedButton(
+                        onPressed: (_lockButton
+                            ? null
+                            : () {
+                          _signinFormKey.currentState.save();
+                          if (_signinFormKey.currentState.validate()) {
+                            authService.signInBackend(
+                                _signinFormKey
+                                    .currentState.value['username'],
+                                _signinFormKey
+                                    .currentState.value['password']);
+                          }
+                        }),
+                        color: Colors.blueAccent,
+                        textColor: Colors.white,
+                        child: Center(
+                          child: Text(
+                            'Login',
+                            textScaleFactor: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
