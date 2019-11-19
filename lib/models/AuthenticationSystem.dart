@@ -24,12 +24,12 @@ class UserProfile {
     UserProfile userProfile = UserProfile._(user);
 
     DocumentSnapshot data =
-    await _db.collection('users').document(user.uid).get();
+        await _db.collection('users').document(user.uid).get();
     userProfile.data.addAll(data.data);
 
     if (!user.isAnonymous) {
       DocumentSnapshot roleData =
-      await _db.collection('user_roles').document(user.uid).get();
+          await _db.collection('user_roles').document(user.uid).get();
       userProfile.userProfileType = roleData.data['role'] ?? 'Student';
     } else {
       userProfile.userProfileType = 'Student';
@@ -41,13 +41,13 @@ class UserProfile {
         File('${Directory.systemTemp.path}/profile_picture.jpg');
 
     final StorageReference profilePictureReference =
-    userProfile.profileStorage.child('profile_picture.jpg');
+        userProfile.profileStorage.child('profile_picture.jpg');
 
     try {
       await profilePictureReference.getDownloadURL();
 
       final StorageFileDownloadTask profilePictureDownloadTask =
-      profilePictureReference.writeToFile(userProfile.profilePicture);
+          profilePictureReference.writeToFile(userProfile.profilePicture);
 
       await profilePictureDownloadTask.future;
     } catch (e) {
@@ -81,7 +81,7 @@ class AuthService {
 
   UserProfile _profile;
   BehaviorSubject<UserProfile> _profileSubject =
-  BehaviorSubject<UserProfile>.seeded(UserProfile.empty(null));
+      BehaviorSubject<UserProfile>.seeded(UserProfile.empty(null));
 
   Observable<UserProfile> get profileStream => _profileSubject.stream;
 

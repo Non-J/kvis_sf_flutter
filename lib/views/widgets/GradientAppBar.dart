@@ -6,10 +6,11 @@ class GradientAppBar extends StatelessWidget {
   final Gradient gradient;
   final Widget rightAlignedButton;
 
-  GradientAppBar({this.title,
-    this.barHeight: 60.0,
-    this.gradient,
-    this.rightAlignedButton});
+  GradientAppBar(
+      {this.title,
+      this.barHeight: 60.0,
+      this.gradient,
+      this.rightAlignedButton});
 
   @override
   Widget build(BuildContext context) {

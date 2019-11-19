@@ -45,6 +45,7 @@ class ScheduleService {
 
   Observable<Map<DateTime, List<ScheduledEvent>>> get datedEventsStream =>
       _eventsSubject.stream.map((events) {
+        // Map by date
         Map<DateTime, List<ScheduledEvent>> result = {};
         events.forEach((event) {
           result.putIfAbsent(event.beginDate, () => []).add(event);
@@ -85,8 +86,8 @@ class ScheduleService {
             begin: DateTime.fromMillisecondsSinceEpoch(entry['begin'] ?? 0),
             end: DateTime.fromMillisecondsSinceEpoch(entry['end'] ?? 0)));
       });
+      result.sort((x, y) => x.begin.compareTo(y.begin));
       return result;
-      // Map by date
     }));
   }
 

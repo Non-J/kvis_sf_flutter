@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kvis_sf/models/Config.dart';
 import 'package:kvis_sf/models/ScheduleModel.dart';
+import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
 
 class ScheduleWidget extends StatelessWidget {
   @override
@@ -20,86 +22,6 @@ class ScheduleWidget extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class CalendarDateList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: scheduleService.datedEventsStream,
-      builder: (context,
-          AsyncSnapshot<Map<DateTime, List<ScheduledEvent>>> snapshot) {
-        if (snapshot.hasData) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: (snapshot.data.keys.toList()
-              ..sort((x, y) => x.compareTo(y)))
-                .map((date) {
-              Color _color;
-
-              switch (date.weekday) {
-                case DateTime.monday:
-                  _color = Colors.yellowAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.tuesday:
-                  _color = Colors.pinkAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.wednesday:
-                  _color = Colors.greenAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.thursday:
-                  _color = Colors.orangeAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.friday:
-                  _color = Colors.blueAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.saturday:
-                  _color = Colors.purpleAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.sunday:
-                  _color = Colors.redAccent.shade100.withAlpha(128);
-                  break;
-              }
-
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 10.0),
-                elevation: 0,
-                color: _color,
-                child: InkWell(
-                  onTap: () {},
-                  child: Container(
-                    padding: EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          DateFormat('EEEE').format(date),
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .display1,
-                        ),
-                        Text(
-                          DateFormat('d MMMM y').format(date),
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .display1,
-                          textScaleFactor: 0.7,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(growable: false),
-          );
-        }
-
-        return Container();
-      },
     );
   }
 }
@@ -151,7 +73,9 @@ class CurrentEventDisplayWidget extends StatelessWidget {
                     return CurrentEventDisplayWidgetEntry(
                       key: _key,
                       event: entry,
-                      timeDisplayBegin: entry.begin.add(Duration(hours: -2)),
+                      timeDisplayBegin: entry.begin.add(Duration(
+                          hours: -configService
+                              .getValue('scheduleUpcomingEventsDisplayHours'))),
                       timeDisplayEnd: entry.begin,
                     );
                   }).toList(growable: false),
@@ -160,7 +84,7 @@ class CurrentEventDisplayWidget extends StatelessWidget {
                     thickness: 3.0,
                   ),
                   Text(
-                    'Time shown is in the timezone of your device.\nWe recommend that you chage it to Thailand\'s local time.',
+                    'Time shown is in the timezone of your device.\nWe recommend that you change it to Thailand\'s local time.',
                     style: Theme
                         .of(context)
                         .textTheme
@@ -181,9 +105,12 @@ class CurrentEventDisplayWidget extends StatelessWidget {
             padding: EdgeInsets.all(10.0),
             child: Column(
               children: <Widget>[
-                Text('Retrieving current events.'),
                 Center(
                   child: CircularProgressIndicator(),
+                ),
+                Container(
+                  margin: EdgeInsets.all(15.0),
+                  child: Text('Retrieving current events.'),
                 ),
               ],
             ),
@@ -258,65 +185,200 @@ class _CurrentEventDisplayWidgetEntryState
         child: ListTile(
           title: Text(widget.event.name),
           subtitle: Text(
-              'Location: ${widget.event.location}\nBegin: ${widget.event
-                  .beginTimeString}\nEnd: ${widget.event.endTimeString}'),
+              '${widget.event.beginTimeString} - ${widget.event
+                  .endTimeString} at ${widget.event.location}'),
         ),
       ),
     );
   }
 }
 
-/*
-class ScheduleCalendarDate extends StatelessWidget {
-  final DateTime date;
+class CalendarDateList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: scheduleService.datedEventsStream,
+      builder: (context,
+          AsyncSnapshot<Map<DateTime, List<ScheduledEvent>>> snapshot) {
+        if (snapshot.hasData) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: (snapshot.data.keys.toList()
+              ..sort((x, y) => x.compareTo(y)))
+                .map((date) {
+              Color _color;
 
-  ScheduleCalendarDate(this.date);
+              switch (date.weekday) {
+                case DateTime.monday:
+                  _color = Colors.yellow.shade400.withAlpha(128);
+                  break;
+                case DateTime.tuesday:
+                  _color = Colors.pinkAccent.shade100.withAlpha(128);
+                  break;
+                case DateTime.wednesday:
+                  _color = Colors.greenAccent.shade100.withAlpha(128);
+                  break;
+                case DateTime.thursday:
+                  _color = Colors.orangeAccent.shade100.withAlpha(128);
+                  break;
+                case DateTime.friday:
+                  _color = Colors.blueAccent.shade100.withAlpha(128);
+                  break;
+                case DateTime.saturday:
+                  _color = Colors.purpleAccent.shade100.withAlpha(128);
+                  break;
+                case DateTime.sunday:
+                  _color = Colors.redAccent.shade100.withAlpha(128);
+                  break;
+              }
+
+              final DateTime begin = DateTime.fromMillisecondsSinceEpoch(
+                  configService.getValue('scheduleDayOffsetTime'));
+              final DateTime firstDate = DateTime(begin
+                  .toLocal()
+                  .year,
+                  begin
+                      .toLocal()
+                      .month, begin
+                      .toLocal()
+                      .day);
+              final int dayOffset = date
+                  .difference(firstDate)
+                  .inDays;
+
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 5.0),
+                elevation: 0,
+                color: _color,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CarlendarEventWidget(
+                              dayOffset: dayOffset,
+                              date: date,
+                              events: snapshot.data[date]
+                                ..sort((x, y) => x.begin.compareTo(y.begin)),
+                            ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Day $dayOffset',
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .display1,
+                        ),
+                        Text(
+                          DateFormat('E d MMMM y').format(date),
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .display1,
+                          textScaleFactor: 0.7,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(growable: false),
+          );
+        }
+
+        return Container();
+      },
+    );
+  }
+}
+
+class CarlendarEventWidget extends StatelessWidget {
+  const CarlendarEventWidget({Key key,
+    @required this.dayOffset,
+    @required this.date,
+    @required this.events})
+      : super(key: key);
+
+  final int dayOffset;
+  final DateTime date;
+  final List<ScheduledEvent> events;
 
   @override
   Widget build(BuildContext context) {
-    Color _color;
-
-    switch (date.weekday) {
-      case DateTime.monday:
-        _color = Colors.yellowAccent.shade100.withAlpha(128);
-        break;
-      case DateTime.tuesday:
-        _color = Colors.pinkAccent.shade100.withAlpha(128);
-        break;
-      case DateTime.wednesday:
-        _color = Colors.greenAccent.shade100.withAlpha(128);
-        break;
-      case DateTime.thursday:
-        _color = Colors.orangeAccent.shade100.withAlpha(128);
-        break;
-      case DateTime.friday:
-        _color = Colors.blueAccent.shade100.withAlpha(128);
-        break;
-      case DateTime.saturday:
-        _color = Colors.purpleAccent.shade100.withAlpha(128);
-        break;
-      case DateTime.sunday:
-        _color = Colors.redAccent.shade100.withAlpha(128);
-        break;
-    }
-
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 10.0),
-      elevation: 0,
-      color: _color,
-      child: Container(
-        padding: EdgeInsets.all(10.0),
+    return Scaffold(
+      body: Container(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text(
-              DateFormat('EEEE').format(date),
-              style: Theme.of(context).textTheme.display1,
+            GradientAppBar(
+              title: Text(
+                'Day $dayOffset (${DateFormat('d MMM y').format(date)})',
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .headline,
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.0, 1.0],
+                colors: [
+                  Color.fromRGBO(212, 234, 209, 1.0),
+                  Color.fromRGBO(184, 213, 233, 1.0),
+                ],
+              ),
             ),
-            Text(
-              DateFormat('d MMMM y').format(date),
-              style: Theme.of(context).textTheme.display1,
-              textScaleFactor: 0.7,
+            SingleChildScrollView(
+              padding: EdgeInsets.all(10.0),
+              child: IntrinsicWidth(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    ...events.map((event) =>
+                        Card(
+                          elevation: 5,
+                          margin: EdgeInsets.symmetric(vertical: 5.0),
+                          child: Container(
+                            child: ListTile(
+                              isThreeLine: true,
+                              title: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Text(
+                                  event.name,
+                                  style: Theme
+                                      .of(context)
+                                      .textTheme
+                                      .headline,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${event.beginTimeString} - ${event
+                                        .endTimeString} at ${event
+                                        .location}\n${event.details}',
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .body1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -324,117 +386,3 @@ class ScheduleCalendarDate extends StatelessWidget {
     );
   }
 }
-
-class ScheduleCalendarEntry extends StatefulWidget {
-  @override
-  _ScheduleCalendarEntryState createState() => _ScheduleCalendarEntryState();
-
-  final ScheduledEvent event;
-
-  ScheduleCalendarEntry(this.event, {Key key}) : super(key: key);
-}
-
-class _ScheduleCalendarEntryState extends State<ScheduleCalendarEntry> {
-  void _onTap() {
-    _changeOnGoingState();
-  }
-
-  bool _onGoing = false;
-  StreamSubscription<List<ScheduledEvent>> _reloadEvent;
-
-  Timer _begin, _end;
-
-  void _changeOnGoingState() {
-    if (DateTime.now().isAfter(widget.event.begin) &&
-        DateTime.now().isBefore(widget.event.end)) {
-      setState(() {
-        _onGoing = true;
-      });
-    } else {
-      setState(() {
-        _onGoing = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _begin = Timer(
-        widget.event.begin.difference(DateTime.now()) +
-            Duration(milliseconds: 10),
-        _changeOnGoingState);
-
-    _end = Timer(
-        widget.event.end.difference(DateTime.now()) +
-            Duration(milliseconds: 10),
-        _changeOnGoingState);
-
-    _changeOnGoingState();
-
-    _reloadEvent = scheduleService.scheduledEventsLegacyList.listen((list) {
-      // For some reason, if the function is called immediately, the changes doesn't take effect.
-      Timer(Duration(milliseconds: 10), _changeOnGoingState);
-    });
-  }
-
-  @override
-  void dispose() {
-    _reloadEvent.cancel();
-    _begin.cancel();
-    _end.cancel();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Color.fromRGBO(255, 255, 255, 0.7),
-      margin: EdgeInsets.symmetric(vertical: 5.0),
-      child: InkWell(
-        onTap: _onTap,
-        child: Container(
-          child: ListTile(
-            isThreeLine: true,
-            title: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: <Widget>[
-                  (_onGoing
-                      ? Chip(
-                          label: Text('On Going'),
-                          backgroundColor: Colors.lightGreenAccent,
-                        )
-                      : Text('')),
-                  Text(
-                    widget.event.name,
-                    style: Theme.of(context).textTheme.headline,
-                    textScaleFactor: 1.2,
-                  ),
-                ],
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${widget.event.beginTimeString} - ${widget.event.endTimeString} at ${widget.event.location}',
-                  style: Theme.of(context).textTheme.headline,
-                  textScaleFactor: 0.8,
-                ),
-                Text(
-                  widget.event.details,
-                  style: Theme.of(context).textTheme.body1,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-*/
