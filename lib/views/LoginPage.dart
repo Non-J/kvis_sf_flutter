@@ -88,7 +88,8 @@ class _SigninFormState extends State<SigninForm> {
   void initState() {
     super.initState();
 
-    _redirectSubscription = authService.userStream.listen((FirebaseUser user) {
+    _redirectSubscription =
+        authService.rawUserStream.listen((FirebaseUser user) {
       if (user != null) {
         Future(() {
           Navigator.of(context).pushReplacementNamed('/home');
@@ -215,7 +216,7 @@ class _SigninFormState extends State<SigninForm> {
                         textColor: Colors.white,
                         child: Center(
                           child: Text(
-                            'Login',
+                            'Sign in',
                             textScaleFactor: 1.5,
                           ),
                         ),

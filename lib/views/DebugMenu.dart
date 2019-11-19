@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -98,15 +99,21 @@ class DebugPageContent extends StatelessWidget {
                           .textTheme
                           .body2);
                 }
-                return Text('User Data Not Available',
+                return Text(
+                    'User Data Not Available\nStatus: ${snapshot.connectionState
+                        .toString()}',
                     style: Theme
                         .of(context)
                         .textTheme
                         .body2);
               },
             ),
+            Divider(
+              height: 25.0,
+              thickness: 3.0,
+            ),
             StreamBuilder(
-              stream: authService.profileStream,
+              stream: authService.dataStream,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return SelectableText(snapshot.data.toString(),
@@ -115,36 +122,35 @@ class DebugPageContent extends StatelessWidget {
                           .textTheme
                           .body2);
                 }
-                return Text('User Profile Not Available',
+                return Text(
+                    'User Profile Not Available\nStatus: ${snapshot
+                        .connectionState.toString()}',
                     style: Theme
                         .of(context)
                         .textTheme
                         .body2);
               },
             ),
-            StreamBuilder(
-              stream: authService.profileStream,
+            Divider(
+              height: 25.0,
+              thickness: 3.0,
+            ),
+            FutureBuilder<File>(
+              future: authService.getProfilePicture(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  if (snapshot.data == null ||
-                      snapshot.data.profilePicture == null) {
-                    return Text('No Profile Picture',
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .display1);
-                  } else {
-                    return Image.file(
-                      snapshot.data.profilePicture,
-                      height: 250.0,
-                    );
-                  }
+                  return Image.file(
+                    snapshot.data,
+                    height: 250.0,
+                  );
                 }
-                return Text('No Profile Picture Data',
+                return Text(
+                    'No Profile Picture Data\nStatus: ${snapshot.connectionState
+                        .toString()}',
                     style: Theme
                         .of(context)
                         .textTheme
-                        .display1);
+                        .body2);
               },
             ),
             Container(

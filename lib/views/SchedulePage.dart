@@ -105,8 +105,11 @@ class CurrentEventDisplayWidget extends StatelessWidget {
             padding: EdgeInsets.all(10.0),
             child: Column(
               children: <Widget>[
-                Center(
-                  child: CircularProgressIndicator(),
+                Container(
+                  margin: EdgeInsets.all(10.0),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 ),
                 Container(
                   margin: EdgeInsets.all(15.0),

@@ -7,62 +7,6 @@ import 'package:rxdart/rxdart.dart';
 
 Firestore _db = Firestore.instance;
 
-class UserProfile {
-  final FirebaseUser user;
-  String userProfileType;
-  Map<String, dynamic> data = {};
-  StorageReference profileStorage;
-  File profilePicture;
-
-  UserProfile._(this.user);
-
-  static UserProfile empty(FirebaseUser user) {
-    return UserProfile._(user);
-  }
-
-  static Future<UserProfile> init(FirebaseUser user) async {
-    UserProfile userProfile = UserProfile._(user);
-
-    DocumentSnapshot data =
-        await _db.collection('users').document(user.uid).get();
-    userProfile.data.addAll(data.data);
-
-    if (!user.isAnonymous) {
-      DocumentSnapshot roleData =
-          await _db.collection('user_roles').document(user.uid).get();
-      userProfile.userProfileType = roleData.data['role'] ?? 'Student';
-    } else {
-      userProfile.userProfileType = 'Student';
-    }
-
-    userProfile.profileStorage =
-        FirebaseStorage.instance.ref().child('profiles/${user.uid}');
-    userProfile.profilePicture =
-        File('${Directory.systemTemp.path}/profile_picture.jpg');
-
-    final StorageReference profilePictureReference =
-        userProfile.profileStorage.child('profile_picture.jpg');
-
-    try {
-      await profilePictureReference.getDownloadURL();
-
-      final StorageFileDownloadTask profilePictureDownloadTask =
-          profilePictureReference.writeToFile(userProfile.profilePicture);
-
-      await profilePictureDownloadTask.future;
-    } catch (e) {
-      userProfile.profilePicture = null;
-    }
-
-    return Future.value(userProfile);
-  }
-
-  @override
-  String toString() {
-    return 'UserProfile{user: $user, _data: $data, profileStorage: $profileStorage, profilePicture: $profilePicture}';
-  }
-}
-
 class SigningInStatus {
   SigningInStatus(this.loading, this.message);
 
@@ -74,47 +18,77 @@ class SigningInStatus {
 }
 
 class AuthService {
+  final Map<String, dynamic> _defaultProfileData = {
+    'role': 'Student',
+    'isProperUser': false,
+    'isDefaultProfile': true,
+  };
+
   static FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Firebase user stuff
   FirebaseUser _user;
-  Observable<FirebaseUser> userStream = Observable(_auth.onAuthStateChanged);
+  BehaviorSubject<FirebaseUser> _userSubject = BehaviorSubject.seeded(null);
 
-  UserProfile _profile;
-  BehaviorSubject<UserProfile> _profileSubject =
-      BehaviorSubject<UserProfile>.seeded(UserProfile.empty(null));
+  Observable<FirebaseUser> get userStream => _userSubject.stream;
 
-  Observable<UserProfile> get profileStream => _profileSubject.stream;
+  Observable<FirebaseUser> get rawUserStream =>
+      Observable(_auth.onAuthStateChanged);
 
+  // For locking UI buttons are display sign in result
   PublishSubject<SigningInStatus> _signingInStatusSubject = PublishSubject();
 
   Observable<SigningInStatus> get signingInStatus =>
       _signingInStatusSubject.stream;
 
-  AuthService() {
-    userStream.listen((FirebaseUser firebaseUser) async {
-      // Listen to firebase authentication stream and update the data accordingly
-      _user = firebaseUser;
+  // Profile stuff
+  StorageReference profileStorage;
 
-      if (firebaseUser != null) {
-        // Currently signed in and is an actual account
-        try {
-          reloadProfile();
-          _signingInStatusSubject
-              .add(SigningInStatus(false, 'Sending you to homepage.'));
-        } catch (e) {
-          _signingInStatusSubject.add(
-              SigningInStatus(false, 'Error retrieving user\'s profile data.'));
+  BehaviorSubject<Map<String, dynamic>> _dataSubject = BehaviorSubject();
+
+  Observable<Map<String, dynamic>> get dataStream => _dataSubject.stream;
+
+  // Initialize streams
+  AuthService() {
+    _userSubject.addStream(_auth.onAuthStateChanged);
+    _dataSubject.addStream(
+      rawUserStream.switchMap((FirebaseUser firebaseUser) {
+        profileStorage = null;
+
+        if (firebaseUser == null) {
+          // Not logged in
+          return Observable.just(_defaultProfileData);
+        } else if (firebaseUser.isAnonymous) {
+          // Anonymous login
+          return Observable.just(_defaultProfileData);
         }
-      } else {
-        // Currently not signed in
-        _profileSubject.add(UserProfile.empty(firebaseUser));
-        _signingInStatusSubject.add(SigningInStatus(false, 'Please sign-in'));
-      }
-    });
+
+        profileStorage = FirebaseStorage.instance
+            .ref()
+            .child('profiles/${firebaseUser.uid}');
+
+        return Observable.combineLatest2(
+            _db
+                .collection('users_immutable')
+                .document(firebaseUser.uid)
+                .snapshots(),
+            _db.collection('users').document(firebaseUser.uid).snapshots(),
+                (DocumentSnapshot dataImmutable, DocumentSnapshot data) {
+              Map<String, dynamic> _result = _defaultProfileData;
+              _result.addAll(data.data ?? {});
+              _result.addAll(dataImmutable.data ?? {});
+              _result['isProperUser'] = !firebaseUser.isAnonymous;
+              _result['isDefaultProfile'] = false;
+              return _result;
+            });
+      }).onErrorReturn(_defaultProfileData),
+      cancelOnError: false,
+    );
   }
 
   void dispose() {
-    _profileSubject.close();
+    _userSubject.close();
+    _dataSubject.close();
     _signingInStatusSubject.close();
   }
 
@@ -122,21 +96,22 @@ class AuthService {
     if (_user != null && _user.isAnonymous) {
       return _user.delete();
     } else {
-      await _auth.signOut();
-      return Future.value();
+      return _auth.signOut();
     }
   }
 
   void signInAnonymously() async {
-    _signingInStatusSubject.add(SigningInStatus(true, 'Signing in...'));
-
     if (_user != null) {
       // Sign out of the current account (if any)
       await signOut();
     }
 
+    _signingInStatusSubject.add(SigningInStatus(true, 'Signing in...'));
+
     try {
       await _auth.signInAnonymously();
+      _signingInStatusSubject
+          .add(SigningInStatus(false, 'Sending you to homepage.'));
     } catch (err) {
       _signingInStatusSubject
           .add(SigningInStatus(false, 'Sign-in Failed.\n${err.toString()}'));
@@ -144,37 +119,38 @@ class AuthService {
   }
 
   void signInBackend(String username, String password) async {
-    _signingInStatusSubject.add(SigningInStatus(true, 'Signing in...'));
-
     if (_user != null) {
       // Sign out of the current account (if any)
       await signOut();
     }
 
+    _signingInStatusSubject.add(SigningInStatus(true, 'Signing in...'));
+
     try {
       await _auth.signInWithEmailAndPassword(
           email: username, password: password);
+      _signingInStatusSubject
+          .add(SigningInStatus(false, 'Sending you to homepage.'));
     } catch (err) {
       _signingInStatusSubject.add(
           SigningInStatus(false, 'Sign-in Failed.\n${err.code.toString()}'));
     }
   }
 
-  void reloadProfile() async {
-    // Publish profile data
-    _profileSubject.add(UserProfile.empty(_user));
-    if (!_user.isAnonymous) {
-      _profile = await UserProfile.init(_user);
-      _profileSubject.add(_profile);
-    }
-  }
+  Future<File> getProfilePicture() async {
+    File _output = File('${Directory.systemTemp.path}/profile_picture.jpg');
 
-  void updateProfile(Map<String, dynamic> newData) {
-    if (!_user.isAnonymous) {
-      DocumentReference ref = _db.collection('users').document(_user.uid);
-      ref.setData(newData, merge: true);
-      reloadProfile();
+    try {
+      await this
+          .profileStorage
+          .child('profile_picture.jpg')
+          .writeToFile(_output)
+          .future;
+    } catch (e) {
+      return null;
     }
+
+    return _output;
   }
 }
 

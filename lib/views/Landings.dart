@@ -39,7 +39,7 @@ class _LandingWidgetState extends State<LandingWidget> {
         child: SafeArea(
           child: Center(
             child: StreamBuilder(
-              stream: authService.userStream,
+              stream: authService.rawUserStream,
               builder: (context, snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:

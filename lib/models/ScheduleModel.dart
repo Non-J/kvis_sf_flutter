@@ -7,7 +7,7 @@ class QueryProfilePair {
   QueryProfilePair(this.left, this.right);
 
   final List<DocumentSnapshot> left;
-  final UserProfile right;
+  final Map<String, dynamic> right;
 }
 
 class ScheduledEvent {
@@ -56,14 +56,12 @@ class ScheduleService {
   ScheduleService() {
     _eventsSubject.addStream(Observable.combineLatest2(
         _db.collection('schedules').snapshots(),
-        authService.profileStream,
+        authService.dataStream,
             (query, profile) => QueryProfilePair(query.documents, profile))
     // Filter for targeted audience
         .map((pair) =>
         pair.left
-            .where((doc) =>
-        doc.data['audience'] ==
-            (pair.right.userProfileType ?? 'Student'))
+            .where((doc) => doc.data['audience'] == (pair.right['role']))
             .toList(growable: false))
     // Extract individual event entry
         .map((docs) {
