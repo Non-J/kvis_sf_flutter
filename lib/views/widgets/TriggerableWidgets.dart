@@ -36,7 +36,9 @@ class FlashNotification {
       builder: (_, controller) {
         return Flash.dialog(
           controller: controller,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme
+              .of(context)
+              .backgroundColor,
           margin: const EdgeInsets.only(left: 40.0, right: 40.0),
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
           child: FlashBar(
@@ -61,7 +63,9 @@ class FlashNotification {
       transitionDuration: _transitionDuration,
       builder: (_, controller) => Flash(
         controller: controller,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme
+            .of(context)
+            .backgroundColor,
         boxShadows: [BoxShadow(blurRadius: 4)],
         style: FlashStyle.grounded,
         position: FlashPosition.top,
@@ -88,7 +92,9 @@ class FlashNotification {
       transitionDuration: _transitionDuration,
       builder: (_, controller) => Flash(
         controller: controller,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme
+            .of(context)
+            .backgroundColor,
         boxShadows: [BoxShadow(blurRadius: 4)],
         barrierBlur: 1.0,
         barrierColor: Colors.black38,

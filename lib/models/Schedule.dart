@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/models/Authentication.dart';
 import 'package:rxdart/rxdart.dart';
 
 class QueryProfilePair {
@@ -32,7 +32,8 @@ class ScheduledEvent {
 
   @override
   String toString() {
-    return 'ScheduledEvent: $name, $location, $details, $beginDate, $endDate';
+    return 'ScheduledEvent: $name, $location, $details, ${begin
+        .toString()}, ${end.toString()}';
   }
 }
 

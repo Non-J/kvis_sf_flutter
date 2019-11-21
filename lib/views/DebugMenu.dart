@@ -4,46 +4,25 @@ import 'dart:ui';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/models/Notification.dart';
-import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
+import 'package:kvis_sf/models/Authentication.dart';
+import 'package:kvis_sf/models/InAppLogging.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 import 'package:rxdart/rxdart.dart';
 
 class DebugPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          GradientAppBar(
-            title: Text(
-              'Debug Menu (For Developers)',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .headline,
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              stops: [0.0, 1.0],
-              colors: [
-                Color.fromRGBO(203, 53, 108, 1.0),
-                Color.fromRGBO(189, 64, 50, 1.0),
-              ],
-            ),
+    return FlashNotificationOverlay(
+      child: Scaffold(
+        appBar: AppBar(title: Text('Debug Menu (For Developers)')),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(15.0),
+            scrollDirection: Axis.vertical,
+            primary: true,
+            child: DebugPageContent(),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(15.0),
-              scrollDirection: Axis.vertical,
-              primary: true,
-              child: DebugPageContent(),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -159,9 +138,10 @@ class DebugPageContent extends StatelessWidget {
                 onPressed: () {
                   authService.signOut();
                 },
-                child: Text('Logout'),
-                color: Colors.redAccent,
-                textColor: Colors.white,
+                child: Text('Sign Out'),
+                color: Theme
+                    .of(context)
+                    .errorColor,
               ),
             ),
           ],
@@ -222,8 +202,6 @@ class DebugPageContent extends StatelessWidget {
                   );
                 },
                 child: Text('Dialog Test'),
-                color: Colors.blueAccent,
-                textColor: Colors.white,
               ),
             ),
             Container(
@@ -237,8 +215,6 @@ class DebugPageContent extends StatelessWidget {
                   );
                 },
                 child: Text('Notification Test'),
-                color: Colors.blueAccent,
-                textColor: Colors.white,
               ),
             ),
             Container(
@@ -252,8 +228,6 @@ class DebugPageContent extends StatelessWidget {
                   );
                 },
                 child: Text('Critical Notification Test'),
-                color: Colors.blueAccent,
-                textColor: Colors.white,
               ),
             ),
             Container(
@@ -267,8 +241,6 @@ class DebugPageContent extends StatelessWidget {
                   });
                 },
                 child: Text('Push New Log'),
-                color: Colors.blueAccent,
-                textColor: Colors.white,
               ),
             ),
             Container(
@@ -278,8 +250,9 @@ class DebugPageContent extends StatelessWidget {
                   Crashlytics.instance.crash();
                 },
                 child: Text('Crash App'),
-                color: Colors.deepOrange.shade800,
-                textColor: Colors.white,
+                color: Theme
+                    .of(context)
+                    .errorColor,
               ),
             ),
           ],

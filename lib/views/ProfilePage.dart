@@ -1,88 +1,66 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kvis_sf/models/AuthenticationSystem.dart';
-import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
+import 'package:kvis_sf/models/Authentication.dart';
 import 'package:kvis_sf/views/widgets/LegalText.dart';
 
 class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            GradientAppBar(
-              title: Text(
-                'Profile and Settings',
-                style: Theme.of(context).textTheme.headline,
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [0.0, 1.0],
-                colors: [
-                  Color.fromRGBO(212, 234, 209, 1.0),
-                  Color.fromRGBO(184, 213, 233, 1.0),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(15.0),
-                child: Column(
-                  children: <Widget>[
-                    FutureBuilder<File>(
-                      future: authService.getProfilePicture(),
-                      builder: (context, snapshot) {
-                        switch (snapshot.connectionState) {
-                          case ConnectionState.none:
-                          case ConnectionState.waiting:
-                            break;
-                          case ConnectionState.active:
-                          case ConnectionState.done:
-                            if (snapshot.hasData) {
-                              return CircleAvatar(
-                                backgroundImage: FileImage(snapshot.data),
-                                radius: 120.0,
-                              );
-                            } else {
-                              return CircleAvatar(
-                                child: Text(
-                                  'No Profile Picture',
-                                ),
-                                radius: 120.0,
-                              );
-                            }
-                            break;
-                        }
-
+      appBar: AppBar(
+        title: Text('Profile and Settings'),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(15.0),
+          child: Column(
+            children: <Widget>[
+              FutureBuilder<File>(
+                future: authService.getProfilePicture(),
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      break;
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      if (snapshot.hasData) {
                         return CircleAvatar(
-                          child: CircularProgressIndicator(
-                            valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
+                          backgroundImage: FileImage(snapshot.data),
+                          radius: 120.0,
+                        );
+                      } else {
+                        return CircleAvatar(
+                          child: Text(
+                            'No Profile Picture',
                           ),
                           radius: 120.0,
                         );
-                      },
+                      }
+                      break;
+                  }
+
+                  return CircleAvatar(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-                    Divider(
-                      height: 25.0,
-                      thickness: 3.0,
-                    ),
-                    ProfileContent(),
-                    Divider(
-                      height: 25.0,
-                      thickness: 3.0,
-                    ),
-                    LegalText(),
-                  ],
-                ),
+                    radius: 120.0,
+                  );
+                },
               ),
-            ),
-          ],
+              Divider(
+                height: 25.0,
+                thickness: 3.0,
+              ),
+              ProfileContent(),
+              Divider(
+                height: 25.0,
+                thickness: 3.0,
+              ),
+              LegalText(),
+            ],
+          ),
         ),
       ),
     );
@@ -119,7 +97,7 @@ class _ProfileContentState extends State<ProfileContent> {
           if (snapshot.data['isProperUser']) {
             return Column(
               children: <Widget>[
-                SelectableText(snapshot.data.toString()),
+                ProfileTextContentDisplayWidget(data: snapshot.data),
                 Divider(
                   height: 25.0,
                   thickness: 3.0,
@@ -129,14 +107,22 @@ class _ProfileContentState extends State<ProfileContent> {
                   children: <Widget>[
                     RaisedButton(
                       onPressed: () {},
+                      child: Text('QR Code'),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 10.0,
+                      ),
+                    ),
+                    RaisedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/profileEditor',
+                            arguments: snapshot.data);
+                      },
                       child: Text('Edit'),
                       padding: EdgeInsets.symmetric(
                         horizontal: 20.0,
                         vertical: 10.0,
                       ),
-                      elevation: 5.0,
-                      color: Colors.blueAccent,
-                      textColor: Colors.white,
                     ),
                     RaisedButton(
                       onPressed: () async {
@@ -150,9 +136,9 @@ class _ProfileContentState extends State<ProfileContent> {
                         horizontal: 20.0,
                         vertical: 10.0,
                       ),
-                      elevation: 5.0,
-                      color: Colors.redAccent,
-                      textColor: Colors.white,
+                      color: Theme
+                          .of(context)
+                          .errorColor,
                     ),
                   ],
                 ),
@@ -184,9 +170,6 @@ class _ProfileContentState extends State<ProfileContent> {
                       child: Text(
                         'Sign in',
                       ),
-                      elevation: 5.0,
-                      color: Colors.blueAccent,
-                      textColor: Colors.white,
                     ),
                   ),
                 ],
@@ -199,6 +182,39 @@ class _ProfileContentState extends State<ProfileContent> {
           child: CircularProgressIndicator(),
         );
       },
+    );
+  }
+}
+
+class ProfileTextContentDisplayWidget extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  ProfileTextContentDisplayWidget({@required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        ListTile(
+          title: Text(data['name'] ?? 'No Name'),
+          subtitle: Text('Name'),
+        ),
+        ListTile(
+          title: Text(
+              '${data['age'] ?? 'Unknown'} | ${data['gender'] ??
+                  'Prefer not to say'} | ${data['role'] ?? 'Visitor'}'),
+          subtitle: Text('Age | Gender | Status'),
+        ),
+        ListTile(
+          title: Text(
+              '${data['school'] ?? 'None'} | ${data['country'] ?? 'None'}'),
+          subtitle: Text('School | Country'),
+        ),
+        ListTile(
+          title: Text(data['information'] ?? 'None'),
+          subtitle: Text('Additional Information'),
+        ),
+      ],
     );
   }
 }

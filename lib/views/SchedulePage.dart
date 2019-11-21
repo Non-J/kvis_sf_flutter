@@ -3,8 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kvis_sf/models/Config.dart';
-import 'package:kvis_sf/models/ScheduleModel.dart';
-import 'package:kvis_sf/views/widgets/GradientAppBar.dart';
+import 'package:kvis_sf/models/Schedule.dart';
 
 class ScheduleWidget extends StatelessWidget {
   @override
@@ -34,8 +33,6 @@ class CurrentEventDisplayWidget extends StatelessWidget {
       builder: (context, AsyncSnapshot<List<ScheduledEvent>> snapshot) {
         if (snapshot.hasData) {
           return Card(
-            elevation: 0,
-            color: Color.fromRGBO(255, 255, 255, 0.7),
             margin: EdgeInsets.symmetric(vertical: 5.0),
             child: Container(
               padding: EdgeInsets.all(10.0),
@@ -98,8 +95,6 @@ class CurrentEventDisplayWidget extends StatelessWidget {
         }
 
         return Card(
-          elevation: 0,
-          color: Color.fromRGBO(255, 255, 255, 0.7),
           margin: EdgeInsets.symmetric(vertical: 5.0),
           child: Container(
             padding: EdgeInsets.all(10.0),
@@ -251,7 +246,6 @@ class CalendarDateList extends StatelessWidget {
 
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 5.0),
-                elevation: 0,
                 color: _color,
                 child: InkWell(
                   onTap: () {
@@ -259,7 +253,7 @@ class CalendarDateList extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            CarlendarEventWidget(
+                            CalendarEventWidget(
                               dayOffset: dayOffset,
                               date: date,
                               events: snapshot.data[date]
@@ -303,8 +297,8 @@ class CalendarDateList extends StatelessWidget {
   }
 }
 
-class CarlendarEventWidget extends StatelessWidget {
-  const CarlendarEventWidget({Key key,
+class CalendarEventWidget extends StatelessWidget {
+  const CalendarEventWidget({Key key,
     @required this.dayOffset,
     @required this.date,
     @required this.events})
@@ -317,73 +311,49 @@ class CarlendarEventWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            GradientAppBar(
-              title: Text(
-                'Day $dayOffset (${DateFormat('d MMM y').format(date)})',
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .headline,
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [0.0, 1.0],
-                colors: [
-                  Color.fromRGBO(212, 234, 209, 1.0),
-                  Color.fromRGBO(184, 213, 233, 1.0),
-                ],
-              ),
-            ),
-            SingleChildScrollView(
-              padding: EdgeInsets.all(10.0),
-              child: IntrinsicWidth(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    ...events.map((event) =>
-                        Card(
-                          elevation: 5,
-                          margin: EdgeInsets.symmetric(vertical: 5.0),
-                          child: Container(
-                            child: ListTile(
-                              isThreeLine: true,
-                              title: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Text(
-                                  event.name,
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .headline,
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${event.beginTimeString} - ${event
-                                        .endTimeString} at ${event
-                                        .location}\n${event.details}',
-                                    style: Theme
-                                        .of(context)
-                                        .textTheme
-                                        .body1,
-                                  ),
-                                ],
-                              ),
-                            ),
+      appBar: AppBar(
+        title: Text('Day $dayOffset (${DateFormat('d MMM y').format(date)})'),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            children: <Widget>[
+              ...events.map((event) =>
+                  Card(
+                    margin: EdgeInsets.symmetric(vertical: 5.0),
+                    child: Container(
+                      child: ListTile(
+                        isThreeLine: true,
+                        title: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            event.name,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .headline,
                           ),
-                        )),
-                  ],
-                ),
-              ),
-            ),
-          ],
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${event.beginTimeString} - ${event
+                                  .endTimeString} at ${event.location}\n${event
+                                  .details}',
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .body1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+            ],
+          ),
         ),
       ),
     );

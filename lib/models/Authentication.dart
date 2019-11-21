@@ -42,19 +42,18 @@ class AuthService {
       _signingInStatusSubject.stream;
 
   // Profile stuff
-  StorageReference profileStorage;
-
   BehaviorSubject<Map<String, dynamic>> _dataSubject = BehaviorSubject();
 
   Observable<Map<String, dynamic>> get dataStream => _dataSubject.stream;
 
   // Initialize streams
   AuthService() {
-    _userSubject.addStream(_auth.onAuthStateChanged);
+    _userSubject.addStream(rawUserStream);
+    rawUserStream.listen((FirebaseUser firebaseUser) {
+      _user = firebaseUser;
+    });
     _dataSubject.addStream(
       rawUserStream.switchMap((FirebaseUser firebaseUser) {
-        profileStorage = null;
-
         if (firebaseUser == null) {
           // Not logged in
           return Observable.just(_defaultProfileData);
@@ -63,10 +62,6 @@ class AuthService {
           return Observable.just(_defaultProfileData);
         }
 
-        profileStorage = FirebaseStorage.instance
-            .ref()
-            .child('profiles/${firebaseUser.uid}');
-
         return Observable.combineLatest2(
             _db
                 .collection('users_immutable')
@@ -74,11 +69,13 @@ class AuthService {
                 .snapshots(),
             _db.collection('users').document(firebaseUser.uid).snapshots(),
                 (DocumentSnapshot dataImmutable, DocumentSnapshot data) {
-              Map<String, dynamic> _result = _defaultProfileData;
+              Map<String, dynamic> _result = Map.from(_defaultProfileData);
               _result.addAll(data.data ?? {});
               _result.addAll(dataImmutable.data ?? {});
               _result['isProperUser'] = !firebaseUser.isAnonymous;
               _result['isDefaultProfile'] = false;
+              _result['email'] = firebaseUser.email;
+              _result['firebaseUid'] = firebaseUser.uid;
               return _result;
             });
       }).onErrorReturn(_defaultProfileData),
@@ -138,19 +135,38 @@ class AuthService {
   }
 
   Future<File> getProfilePicture() async {
-    File _output = File('${Directory.systemTemp.path}/profile_picture.jpg');
-
-    try {
-      await this
-          .profileStorage
-          .child('profile_picture.jpg')
-          .writeToFile(_output)
-          .future;
-    } catch (e) {
+    if (_user == null || _user.isAnonymous) {
       return null;
     }
 
-    return _output;
+    File imageFile = File('${Directory.systemTemp.path}/profile_picture.jpg');
+
+    StorageReference profilePictureStorage = FirebaseStorage.instance
+        .ref()
+        .child('profiles/${_user.uid}/profile_picture.jpg');
+
+    try {
+      await profilePictureStorage.getMetadata();
+
+      await profilePictureStorage
+          .writeToFile(imageFile)
+          .future;
+
+      return imageFile;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future updateProfileData(Map<String, dynamic> newData) {
+    return _db
+        .collection('users')
+        .document(_user.uid)
+        .setData(newData, merge: true);
+  }
+
+  Future sendResetPasswordLinkViaEmail() async {
+    return _auth.sendPasswordResetEmail(email: _user.email);
   }
 }
 

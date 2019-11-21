@@ -1,6 +1,7 @@
 final defaultConfig = <String, dynamic>{
   'scheduleUpcomingEventsDisplayHours': 2,
   'scheduleDayOffsetTime': 1579021200000,
+  'inAppLoggingHistoryCount': 100,
 };
 
 class ConfigService {

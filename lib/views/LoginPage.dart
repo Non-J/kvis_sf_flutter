@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:kvis_sf/models/AuthenticationSystem.dart';
+import 'package:kvis_sf/models/Authentication.dart';
 import 'package:kvis_sf/views/widgets/LegalText.dart';
 import 'package:kvis_sf/views/widgets/ScrollBehaviors.dart';
 
@@ -12,57 +12,43 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            stops: [0.0, 1.0],
-            colors: [
-              Color.fromRGBO(212, 234, 209, 1.0),
-              Color.fromRGBO(184, 213, 233, 1.0),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: ScrollConfiguration(
-              behavior: NoGrowScrollBehavior(),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    alignment: Alignment(0.0, 0.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Container(
-                          margin: EdgeInsets.all(20.0),
-                          child: Text(
-                            'Welcome',
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .display2
-                                .apply(
-                                color: Color.fromRGBO(127, 206, 172, 1.0)),
-                          ),
+      body: SafeArea(
+        child: Center(
+          child: ScrollConfiguration(
+            behavior: NoGrowScrollBehavior(),
+            child: SingleChildScrollView(
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment(0.0, 0.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.all(20.0),
+                        child: Text(
+                          'Welcome',
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .display2
+                              .apply(color: Color.fromRGBO(127, 206, 172, 1.0)),
                         ),
-                        Container(
-                          child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
-                          height: 300.0,
-                          padding: EdgeInsets.all(5.0),
-                        ),
-                        SigninForm(),
-                        GestureDetector(
-                          onLongPress: () {
-                            Navigator.pushNamed(context, '/debug');
-                          },
-                          child: LegalText(),
-                        ),
-                      ],
-                    ),
+                      ),
+                      Container(
+                        child: Image.asset('images/ISSF2020_LOGO_NoDate.png'),
+                        height: 300.0,
+                        padding: EdgeInsets.all(5.0),
+                      ),
+                      SigninForm(),
+                      GestureDetector(
+                        onLongPress: () {
+                          Navigator.pushNamed(context, '/debug');
+                        },
+                        child: LegalText(),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -121,11 +107,12 @@ class _SigninFormState extends State<SigninForm> {
                     border: OutlineInputBorder(),
                     labelText: 'Email',
                     filled: true,
-                    fillColor: Color.fromRGBO(255, 255, 255, 0.3),
                   ),
                   validators: [
                     FormBuilderValidators.required(
                         errorText: 'Please enter your email.'),
+                    FormBuilderValidators.email(
+                        errorText: 'Email is not correctly formatted'),
                   ],
                 ),
               ),
@@ -137,7 +124,6 @@ class _SigninFormState extends State<SigninForm> {
                     border: OutlineInputBorder(),
                     labelText: 'Password',
                     filled: true,
-                    fillColor: Color.fromRGBO(255, 255, 255, 0.3),
                   ),
                   obscureText: true,
                   validators: [
@@ -184,16 +170,13 @@ class _SigninFormState extends State<SigninForm> {
                       height: 45.0,
                       margin: EdgeInsets.all(10.0),
                       child: RaisedButton(
-                          onPressed: _lockButton
-                              ? null
-                              : () {
-                            authService.signInAnonymously();
-                          },
-                          color: Colors.blueAccent,
-                          textColor: Colors.white,
-                          child: Text(
-                            'Skip sign-in',
-                          )),
+                        onPressed: _lockButton
+                            ? null
+                            : () {
+                          authService.signInAnonymously();
+                        },
+                        child: Text('Skip'),
+                      ),
                     ),
                     Container(
                       width: 120.0,
@@ -212,13 +195,8 @@ class _SigninFormState extends State<SigninForm> {
                                     .currentState.value['password']);
                           }
                         }),
-                        color: Colors.blueAccent,
-                        textColor: Colors.white,
                         child: Center(
-                          child: Text(
-                            'Sign in',
-                            textScaleFactor: 1.5,
-                          ),
+                          child: Text('Sign in'),
                         ),
                       ),
                     ),
