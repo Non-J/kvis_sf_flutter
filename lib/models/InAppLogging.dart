@@ -29,7 +29,7 @@ class LoggingService {
       collection.addLast(val);
       return collection;
     }, Queue<Timestamped<Map<String, dynamic>>>()).map(
-        (collection) => collection.toList(growable: false)));
+            (collection) => collection.toList()));
   }
 
   void pushLogs(Map<String, dynamic> newLog) {

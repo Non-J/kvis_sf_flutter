@@ -87,10 +87,7 @@ class DebugPageContent extends StatelessWidget {
                         .body2);
               },
             ),
-            Divider(
-              height: 25.0,
-              thickness: 3.0,
-            ),
+            Divider(height: 25.0, thickness: 3.0),
             StreamBuilder(
               stream: authService.dataStream,
               builder: (context, snapshot) {
@@ -110,10 +107,7 @@ class DebugPageContent extends StatelessWidget {
                         .body2);
               },
             ),
-            Divider(
-              height: 25.0,
-              thickness: 3.0,
-            ),
+            Divider(height: 25.0, thickness: 3.0),
             FutureBuilder<File>(
               future: authService.getProfilePicture(),
               builder: (context, snapshot) {

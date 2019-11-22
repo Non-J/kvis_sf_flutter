@@ -68,16 +68,16 @@ class AuthService {
                 .document(firebaseUser.uid)
                 .snapshots(),
             _db.collection('users').document(firebaseUser.uid).snapshots(),
-                (DocumentSnapshot dataImmutable, DocumentSnapshot data) {
-              Map<String, dynamic> _result = Map.from(_defaultProfileData);
-              _result.addAll(data.data ?? {});
-              _result.addAll(dataImmutable.data ?? {});
-              _result['isProperUser'] = !firebaseUser.isAnonymous;
-              _result['isDefaultProfile'] = false;
-              _result['email'] = firebaseUser.email;
-              _result['firebaseUid'] = firebaseUser.uid;
-              return _result;
-            });
+            (DocumentSnapshot dataImmutable, DocumentSnapshot data) {
+          Map<String, dynamic> _result = Map.from(_defaultProfileData);
+          _result.addAll(data.data ?? {});
+          _result.addAll(dataImmutable.data ?? {});
+          _result['isProperUser'] = !firebaseUser.isAnonymous;
+          _result['isDefaultProfile'] = false;
+          _result['email'] = firebaseUser.email;
+          _result['firebaseUid'] = firebaseUser.uid;
+          return _result;
+        });
       }).onErrorReturn(_defaultProfileData),
       cancelOnError: false,
     );
@@ -148,9 +148,7 @@ class AuthService {
     try {
       await profilePictureStorage.getMetadata();
 
-      await profilePictureStorage
-          .writeToFile(imageFile)
-          .future;
+      await profilePictureStorage.writeToFile(imageFile).future;
 
       return imageFile;
     } catch (e) {

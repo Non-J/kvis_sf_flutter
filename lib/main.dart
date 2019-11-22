@@ -45,23 +45,6 @@ class _MyAppState extends State<MyApp> {
         // App is in foreground while notification is received
         loggingService
             .pushLogs({'source': 'fcmNotificationMessage', 'message': message});
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) =>
-              AlertDialog(
-                content: ListTile(
-                  title: Text(message['notification']['title']),
-                  subtitle: Text(message['notification']['body']),
-                ),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('Ok'),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-        );
       },
       onResume: (Map<String, dynamic> message) async {
         // App is in background while notification is received

@@ -49,15 +49,9 @@ class ProfilePage extends StatelessWidget {
                   );
                 },
               ),
-              Divider(
-                height: 25.0,
-                thickness: 3.0,
-              ),
+              Divider(height: 25.0, thickness: 3.0),
               ProfileContent(),
-              Divider(
-                height: 25.0,
-                thickness: 3.0,
-              ),
+              Divider(height: 25.0, thickness: 3.0),
               LegalText(),
             ],
           ),
@@ -98,10 +92,7 @@ class _ProfileContentState extends State<ProfileContent> {
             return Column(
               children: <Widget>[
                 ProfileTextContentDisplayWidget(data: snapshot.data),
-                Divider(
-                  height: 25.0,
-                  thickness: 3.0,
-                ),
+                Divider(height: 25.0, thickness: 3.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
@@ -178,9 +169,7 @@ class _ProfileContentState extends State<ProfileContent> {
           }
         }
 
-        return Center(
-          child: CircularProgressIndicator(),
-        );
+        return Center(child: CircularProgressIndicator());
       },
     );
   }

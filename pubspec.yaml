@@ -23,6 +23,7 @@ dependencies:
   flutter_form_builder: ^3.3.4
   flash: ^1.2.0
   image_picker: ^0.6.2
+  flushbar: ^1.9.1
 
 
 dev_dependencies:

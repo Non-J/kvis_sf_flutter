@@ -4,23 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kvis_sf/models/Config.dart';
 import 'package:kvis_sf/models/Schedule.dart';
+import 'package:kvis_sf/views/ScheduleDayPage.dart';
 
 class ScheduleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(10.0),
-      child: SingleChildScrollView(
-        child: IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              CurrentEventDisplayWidget(),
-              CalendarDateList(),
-            ],
-          ),
-        ),
-      ),
+    return ListView(
+      padding: EdgeInsets.all(10.0),
+      children: <Widget>[
+        CurrentEventDisplayWidget(),
+        CalendarDateList(),
+      ],
     );
   }
 }
@@ -32,8 +26,12 @@ class CurrentEventDisplayWidget extends StatelessWidget {
       stream: scheduleService.eventsStream,
       builder: (context, AsyncSnapshot<List<ScheduledEvent>> snapshot) {
         if (snapshot.hasData) {
+          final Duration upcomingEventsDisplayBefore = Duration(
+              hours: -(configService
+                  .getValue('scheduleUpcomingEventsDisplayHours') ??
+                  2));
+
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 5.0),
             child: Container(
               padding: EdgeInsets.all(10.0),
               child: Column(
@@ -47,17 +45,14 @@ class CurrentEventDisplayWidget extends StatelessWidget {
                   ),
                   ...snapshot.data.map((entry) {
                     UniqueKey _key = UniqueKey();
-                    return CurrentEventDisplayWidgetEntry(
+                    return CurrentEventEntryWidget(
                       key: _key,
                       event: entry,
                       timeDisplayBegin: entry.begin,
                       timeDisplayEnd: entry.end,
                     );
-                  }).toList(growable: false),
-                  Divider(
-                    height: 25.0,
-                    thickness: 3.0,
-                  ),
+                  }).toList(),
+                  Divider(height: 25.0, thickness: 3.0),
                   Text(
                     'Upcoming Events',
                     style: Theme
@@ -67,19 +62,15 @@ class CurrentEventDisplayWidget extends StatelessWidget {
                   ),
                   ...snapshot.data.map((entry) {
                     UniqueKey _key = UniqueKey();
-                    return CurrentEventDisplayWidgetEntry(
+                    return CurrentEventEntryWidget(
                       key: _key,
                       event: entry,
-                      timeDisplayBegin: entry.begin.add(Duration(
-                          hours: -configService
-                              .getValue('scheduleUpcomingEventsDisplayHours'))),
+                      timeDisplayBegin:
+                      entry.begin.add(upcomingEventsDisplayBefore),
                       timeDisplayEnd: entry.begin,
                     );
-                  }).toList(growable: false),
-                  Divider(
-                    height: 25.0,
-                    thickness: 3.0,
-                  ),
+                  }).toList(),
+                  Divider(height: 25.0, thickness: 3.0),
                   Text(
                     'Time shown is in the timezone of your device.\nWe recommend that you change it to Thailand\'s local time.',
                     style: Theme
@@ -102,9 +93,7 @@ class CurrentEventDisplayWidget extends StatelessWidget {
               children: <Widget>[
                 Container(
                   margin: EdgeInsets.all(10.0),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
                 Container(
                   margin: EdgeInsets.all(15.0),
@@ -119,23 +108,22 @@ class CurrentEventDisplayWidget extends StatelessWidget {
   }
 }
 
-class CurrentEventDisplayWidgetEntry extends StatefulWidget {
+class CurrentEventEntryWidget extends StatefulWidget {
   @override
-  _CurrentEventDisplayWidgetEntryState createState() =>
-      _CurrentEventDisplayWidgetEntryState();
+  _CurrentEventEntryWidgetState createState() =>
+      _CurrentEventEntryWidgetState();
 
   final ScheduledEvent event;
   final DateTime timeDisplayBegin, timeDisplayEnd;
 
-  CurrentEventDisplayWidgetEntry({@required this.event,
+  CurrentEventEntryWidget({@required this.event,
     @required this.timeDisplayBegin,
     @required this.timeDisplayEnd,
     Key key})
       : super(key: key);
 }
 
-class _CurrentEventDisplayWidgetEntryState
-    extends State<CurrentEventDisplayWidgetEntry> {
+class _CurrentEventEntryWidgetState extends State<CurrentEventEntryWidget> {
   Timer _begin, _end;
   bool _active = false;
 
@@ -195,167 +183,100 @@ class CalendarDateList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: scheduleService.datedEventsStream,
-      builder: (context,
-          AsyncSnapshot<Map<DateTime, List<ScheduledEvent>>> snapshot) {
+      stream: scheduleService.eventsStream,
+      builder: (context, AsyncSnapshot<List<ScheduledEvent>> snapshot) {
         if (snapshot.hasData) {
+          Set<DateTime> dateSet = Set();
+
+          snapshot.data.forEach((event) {
+            for (DateTime date = event.beginDate;
+            date.isBefore(event.endDate.add(Duration(days: 1)));
+            date = date.add(Duration(days: 1))) {
+              dateSet.add(date);
+            }
+          });
+
+          final List<DateTime> dateList = dateSet.toList()
+            ..sort((x, y) => x.compareTo(y));
+
+          final DateTime firstDateTime = DateTime.fromMillisecondsSinceEpoch(
+              configService.getValue('scheduleDayOffsetTime') ?? 0);
+          final DateTime firstDate = DateTime(firstDateTime
+              .toLocal()
+              .year,
+              firstDateTime
+                  .toLocal()
+                  .month, firstDateTime
+                  .toLocal()
+                  .day);
+
+          final Map<int, Color> weekdayColor = {
+            DateTime.monday: Colors.yellow.shade300.withAlpha(128),
+            DateTime.tuesday: Colors.pink.shade300.withAlpha(128),
+            DateTime.wednesday: Colors.green.shade300.withAlpha(128),
+            DateTime.thursday: Colors.orange.shade300.withAlpha(128),
+            DateTime.friday: Colors.blue.shade300.withAlpha(128),
+            DateTime.saturday: Colors.purple.shade300.withAlpha(128),
+            DateTime.sunday: Colors.red.shade300.withAlpha(128),
+          };
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: (snapshot.data.keys.toList()
-              ..sort((x, y) => x.compareTo(y)))
-                .map((date) {
-              Color _color;
-
-              switch (date.weekday) {
-                case DateTime.monday:
-                  _color = Colors.yellow.shade400.withAlpha(128);
-                  break;
-                case DateTime.tuesday:
-                  _color = Colors.pinkAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.wednesday:
-                  _color = Colors.greenAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.thursday:
-                  _color = Colors.orangeAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.friday:
-                  _color = Colors.blueAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.saturday:
-                  _color = Colors.purpleAccent.shade100.withAlpha(128);
-                  break;
-                case DateTime.sunday:
-                  _color = Colors.redAccent.shade100.withAlpha(128);
-                  break;
-              }
-
-              final DateTime begin = DateTime.fromMillisecondsSinceEpoch(
-                  configService.getValue('scheduleDayOffsetTime'));
-              final DateTime firstDate = DateTime(begin
-                  .toLocal()
-                  .year,
-                  begin
-                      .toLocal()
-                      .month, begin
-                      .toLocal()
-                      .day);
-              final int dayOffset = date
-                  .difference(firstDate)
-                  .inDays;
-
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 5.0),
-                color: _color,
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CalendarEventWidget(
-                              dayOffset: dayOffset,
-                              date: date,
-                              events: snapshot.data[date]
-                                ..sort((x, y) => x.begin.compareTo(y.begin)),
-                            ),
+            children: dateList
+                .map((date) =>
+                Card(
+                  color: weekdayColor[date.weekday],
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ScheduleDayPage(
+                                title:
+                                'Day ${date
+                                    .difference(firstDate)
+                                    .inDays}: ${DateFormat('EEEE d MMMM y')
+                                    .format(date)}',
+                                displayBegin: date,
+                                displayEnd: date.add(Duration(days: 1)),
+                              ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'Day ${date
+                                .difference(firstDate)
+                                .inDays}',
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .display1,
+                          ),
+                          Text(
+                            DateFormat('EEEE d MMMM y').format(date),
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .display1,
+                            textScaleFactor: 0.7,
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          'Day $dayOffset',
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .display1,
-                        ),
-                        Text(
-                          DateFormat('E d MMMM y').format(date),
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .display1,
-                          textScaleFactor: 0.7,
-                        ),
-                      ],
                     ),
                   ),
-                ),
-              );
-            }).toList(growable: false),
+                ))
+                .toList(),
           );
         }
 
         return Container();
       },
-    );
-  }
-}
-
-class CalendarEventWidget extends StatelessWidget {
-  const CalendarEventWidget({Key key,
-    @required this.dayOffset,
-    @required this.date,
-    @required this.events})
-      : super(key: key);
-
-  final int dayOffset;
-  final DateTime date;
-  final List<ScheduledEvent> events;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Day $dayOffset (${DateFormat('d MMM y').format(date)})'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(10.0),
-          child: Column(
-            children: <Widget>[
-              ...events.map((event) =>
-                  Card(
-                    margin: EdgeInsets.symmetric(vertical: 5.0),
-                    child: Container(
-                      child: ListTile(
-                        isThreeLine: true,
-                        title: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Text(
-                            event.name,
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .headline,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${event.beginTimeString} - ${event
-                                  .endTimeString} at ${event.location}\n${event
-                                  .details}',
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .body1,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
