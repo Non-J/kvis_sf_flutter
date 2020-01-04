@@ -52,18 +52,6 @@ class _primaryHomepageState extends State<primaryHomepage> {
             onPageChanged: _changedPage,
             children: widget.children),
       ),
-      appBar: AppBar(
-        centerTitle: true,
-        title: GestureDetector(
-          onLongPress: () {
-            Navigator.pushNamed(context, '/debug');
-          },
-          child: Container(
-            child: Image.asset('images/header-logo.png'),
-            padding: EdgeInsets.all(5.0),
-          ),
-        ),
-      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Color.fromRGBO(184, 213, 233, 1.0),

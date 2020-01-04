@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:rxdart/rxdart.dart';
@@ -18,6 +19,9 @@ class SigningInStatus {
 }
 
 class AuthService {
+  final RegExp emailRegex = RegExp(
+      r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$');
+
   final Map<String, dynamic> _defaultProfileData = {
     'role': 'Student',
     'isProperUser': false,
@@ -49,9 +53,11 @@ class AuthService {
   // Initialize streams
   AuthService() {
     _userSubject.addStream(rawUserStream);
+
     rawUserStream.listen((FirebaseUser firebaseUser) {
       _user = firebaseUser;
     });
+
     _dataSubject.addStream(
       rawUserStream.switchMap((FirebaseUser firebaseUser) {
         if (firebaseUser == null) {
@@ -62,16 +68,11 @@ class AuthService {
           return Observable.just(_defaultProfileData);
         }
 
-        return Observable.combineLatest2(
-            _db
-                .collection('users_immutable')
-                .document(firebaseUser.uid)
-                .snapshots(),
-            _db.collection('users').document(firebaseUser.uid).snapshots(),
-            (DocumentSnapshot dataImmutable, DocumentSnapshot data) {
+        return Observable(
+            _db.collection('users').document(firebaseUser.uid).snapshots())
+            .map((DocumentSnapshot data) {
           Map<String, dynamic> _result = Map.from(_defaultProfileData);
           _result.addAll(data.data ?? {});
-          _result.addAll(dataImmutable.data ?? {});
           _result['isProperUser'] = !firebaseUser.isAnonymous;
           _result['isDefaultProfile'] = false;
           _result['email'] = firebaseUser.email;
@@ -124,8 +125,17 @@ class AuthService {
     _signingInStatusSubject.add(SigningInStatus(true, 'Signing in...'));
 
     try {
-      await _auth.signInWithEmailAndPassword(
-          email: username, password: password);
+      if (emailRegex.hasMatch(username)) {
+        await _auth.signInWithEmailAndPassword(
+            email: username, password: password);
+      } else {
+        final usernameLookup = await CloudFunctions.instance
+            .getHttpsCallable(functionName: 'getEmailByUsername')
+            .call({'username': username});
+        await _auth.signInWithEmailAndPassword(
+            email: usernameLookup.data['email'], password: password);
+      }
+
       _signingInStatusSubject
           .add(SigningInStatus(false, 'Sending you to homepage.'));
     } catch (err) {

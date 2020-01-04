@@ -11,11 +11,11 @@ class QueryProfilePair {
 }
 
 class ScheduledEvent {
-  final String id, name, location, details;
+  final String name, location, details;
   final DateTime begin, end;
 
   ScheduledEvent(
-      {this.id, this.name, this.location, this.details, this.begin, this.end});
+      {this.name, this.location, this.details, this.begin, this.end});
 
   DateTime get beginDate => DateTime(this.begin.toLocal().year,
       this.begin.toLocal().month, this.begin.toLocal().day);
@@ -72,12 +72,16 @@ class ScheduleService {
       List<ScheduledEvent> result = [];
       entries.forEach((entry) {
         result.add(ScheduledEvent(
-            id: '',
-            name: entry['name'] ?? 'No Name',
-            location: entry['location'] ?? 'No Specified Location',
-            details: entry['details'] ?? 'No Specified Details',
-            begin: DateTime.fromMillisecondsSinceEpoch(entry['begin'] ?? 0),
-            end: DateTime.fromMillisecondsSinceEpoch(entry['end'] ?? 0)));
+          name: entry['name'].toString() ?? 'No Name',
+          location: entry['location'].toString() ?? 'No Specified Location',
+          details: entry['details'].toString() ?? 'No Specified Details',
+          begin: (entry['begin'] is Timestamp
+              ? entry['begin'].toDate()
+              : DateTime.now()),
+          end: (entry['end'] is Timestamp
+              ? entry['end'].toDate()
+              : DateTime.now()),
+        ));
       });
       result.sort((x, y) => x.begin.compareTo(y.begin));
       return result;

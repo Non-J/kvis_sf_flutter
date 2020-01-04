@@ -159,10 +159,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     Divider(height: 25.0, thickness: 3.0),
                     Text(
                       'The following actions require internet connection.',
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .body2,
+                      style: Theme.of(context).textTheme.body2,
                     ),
                     Container(height: 10.0),
                     ProfilePictureUpload(

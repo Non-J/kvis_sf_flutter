@@ -105,14 +105,12 @@ class _SigninFormState extends State<SigninForm> {
                   attribute: 'username',
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Email',
+                    labelText: 'Username',
                     filled: true,
                   ),
                   validators: [
                     FormBuilderValidators.required(
-                        errorText: 'Please enter your email.'),
-                    FormBuilderValidators.email(
-                        errorText: 'Email is not correctly formatted'),
+                        errorText: 'Please enter your username.'),
                   ],
                 ),
               ),
@@ -126,6 +124,7 @@ class _SigninFormState extends State<SigninForm> {
                     filled: true,
                   ),
                   obscureText: true,
+                  maxLines: 1,
                   validators: [
                     FormBuilderValidators.required(
                         errorText: 'Please enter Password.'),

@@ -35,8 +35,7 @@ class _LandingWidgetState extends State<LandingWidget> {
                 case ConnectionState.done:
                   if (snapshot.hasError) {
                     return SelectableText(
-                        'An error occured in the authenticaiton system.\n${snapshot
-                            .error.toString()}');
+                        'An error occured in the authenticaiton system.\n${snapshot.error.toString()}');
                   } else if (snapshot.hasData) {
                     SchedulerBinding.instance.addPostFrameCallback((_) {
                       Navigator.of(context).pushReplacementNamed('/home');

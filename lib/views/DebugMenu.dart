@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/Authentication.dart';
 import 'package:kvis_sf/models/InAppLogging.dart';
+import 'package:kvis_sf/models/Notification.dart';
 import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -222,6 +223,16 @@ class DebugPageContent extends StatelessWidget {
                   );
                 },
                 child: Text('Critical Notification Test'),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 2.0),
+              child: RaisedButton(
+                onPressed: () {
+                  localNotificationService.sendMessage(
+                      title: "Test", body: "Hello", payload: null);
+                },
+                child: Text('System Notification'),
               ),
             ),
             Container(

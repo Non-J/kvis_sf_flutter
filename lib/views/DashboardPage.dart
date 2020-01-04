@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:kvis_sf/views/widgets/ContentDisplay.dart';
 
 class DashboardWidget extends StatefulWidget {
   DashboardWidget({Key key}) : super(key: key);
@@ -10,14 +12,28 @@ class DashboardWidget extends StatefulWidget {
 class _DashboardWidgetState extends State<DashboardWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(10.0),
+    return StreamBuilder(
+      stream: Firestore.instance
+          .collection('contents')
+          .where('is_featured', isEqualTo: true)
+          .orderBy("priority", descending: true)
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasData) {
+          final List<Widget> contentList = snapshot.data.documents
+              .map((document) =>
+              ContentDisplay(
+                contentDocument: document.reference,
+              ))
+              .toList();
+          return ListView(
+            padding: EdgeInsets.all(10),
+            children: contentList,
+          );
+        }
 
-      // TODO: Waiting for design team
-      child: Text(
-        'Dashboard',
-        style: Theme.of(context).textTheme.display1,
-      ),
+        return Center(child: CircularProgressIndicator());
+      },
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/Authentication.dart';
 import 'package:kvis_sf/views/widgets/LegalText.dart';
@@ -16,6 +14,9 @@ class ProfilePage extends StatelessWidget {
           padding: EdgeInsets.all(15.0),
           child: Column(
             children: <Widget>[
+              /*
+              NOTE: PROFILE PICTURE
+
               FutureBuilder<File>(
                 future: authService.getProfilePicture(),
                 builder: (context, snapshot) {
@@ -50,6 +51,8 @@ class ProfilePage extends StatelessWidget {
                 },
               ),
               Divider(height: 25.0, thickness: 3.0),
+
+               */
               ProfileContent(),
               Divider(height: 25.0, thickness: 3.0),
               LegalText(),
@@ -97,13 +100,26 @@ class _ProfileContentState extends State<ProfileContent> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     RaisedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/QRPage', arguments: {
+                          'title': snapshot.data['name'],
+                          'data': {
+                            'uid': snapshot.data['firebaseUid'],
+                            'name': snapshot.data['name'],
+                            'school': snapshot.data['school'],
+                            'country': snapshot.data['country'],
+                            'role': snapshot.data['role'],
+                            'time': DateTime.now().toIso8601String(),
+                          }
+                        });
+                      },
                       child: Text('QR Code'),
                       padding: EdgeInsets.symmetric(
                         horizontal: 20.0,
                         vertical: 10.0,
                       ),
                     ),
+                    /*
                     RaisedButton(
                       onPressed: () {
                         Navigator.pushNamed(context, '/profileEditor',
@@ -115,6 +131,7 @@ class _ProfileContentState extends State<ProfileContent> {
                         vertical: 10.0,
                       ),
                     ),
+                    */
                     RaisedButton(
                       onPressed: () async {
                         await authService.signOut();

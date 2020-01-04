@@ -5,14 +5,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kvis_sf/models/InAppLogging.dart';
+import 'package:kvis_sf/models/Notification.dart';
 import 'package:kvis_sf/views/DebugMenu.dart';
 import 'package:kvis_sf/views/Landings.dart';
 import 'package:kvis_sf/views/LoginPage.dart';
 import 'package:kvis_sf/views/PrimaryHomepage.dart';
-import 'package:kvis_sf/views/ProfileEditPage.dart';
 import 'package:kvis_sf/views/ProfilePage.dart';
+import 'package:kvis_sf/views/QRPage.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   FlutterError.onError = (FlutterErrorDetails error) {
     loggingService
         .pushLogs({'source': 'FlutterErrorHandler', 'error': error.toString()});
@@ -45,6 +48,8 @@ class _MyAppState extends State<MyApp> {
         // App is in foreground while notification is received
         loggingService
             .pushLogs({'source': 'fcmNotificationMessage', 'message': message});
+        localNotificationService.sendMessage(
+            title: 'Test Message', body: message.toString(), payload: null);
       },
       onResume: (Map<String, dynamic> message) async {
         // App is in background while notification is received
@@ -89,7 +94,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/home': (context) => primaryHomepage(),
         '/profile': (context) => ProfilePage(),
-        '/profileEditor': (context) => ProfileEditPage(),
+        '/QRPage': (context) => QRPage(),
         '/debug': (context) => DebugPage(),
         '/login': (context) => LoginPage(),
       },
