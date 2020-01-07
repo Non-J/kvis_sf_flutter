@@ -150,22 +150,53 @@ class ProfileTextContentDisplayWidget extends StatelessWidget {
     return Column(
       children: <Widget>[
         ListTile(
-          title: Text(data['name'] ?? 'No Name'),
-          subtitle: Text('Name'),
-        ),
-        ListTile(
           title: Text(
-              '${data['age'] ?? 'Unknown'} | ${data['gender'] ??
-                  'Prefer not to say'} | ${data['role'] ?? 'Visitor'}'),
-          subtitle: Text('Age | Gender | Status'),
-        ),
-        ListTile(
-          title: Text(
-              '${data['school'] ?? 'None'} | ${data['country'] ?? 'None'}'),
+              '${data['school'] ?? 'Unaffiliated'} | ${data['country'] ??
+                  'Unaffiliated'}'),
           subtitle: Text('School | Country'),
         ),
-        ListTile(
-          title: Text(data['information'] ?? 'None'),
+        data['sciact'] == null
+            ? Container()
+            : ListTile(
+          title: Text(data['sciact']),
+          subtitle: Text('Scientific Activities'),
+        ),
+        data['excursion'] == null
+            ? Container()
+            : ListTile(
+          title: Text(data['excursion']),
+          subtitle: Text('Excursion'),
+        ),
+        data['buddies'] == null
+            ? Container()
+            : ListTile(
+          title: Text(data['buddies']),
+          subtitle: Text('Buddies'),
+        ),
+        data['accomodation'] == null
+            ? Container()
+            : ListTile(
+          title: Text(data['accomodation']),
+          subtitle: Text('Accomodation'),
+        ),
+        data['proj_topic'] == null
+            ? Container()
+            : ListTile(
+          title: Text(data['proj_topic']),
+          subtitle: Text('Presentation Topic'),
+        ),
+        data['proj_location'] == null && data['proj_field'] == null
+            ? Container()
+            : ListTile(
+          title: Text(
+              '${data['proj_location'] ??
+                  'To Be Announced'} | ${data['proj_field'] ?? '-'}'),
+          subtitle: Text('Presentation Location | Categories'),
+        ),
+        data['information'] == null
+            ? Container()
+            : ListTile(
+          title: Text(data['information']),
           subtitle: Text('Additional Information'),
         ),
       ],

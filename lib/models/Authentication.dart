@@ -66,7 +66,7 @@ class AuthService {
         }
 
         return Observable(
-            _db.collection('users').document(firebaseUser.uid).snapshots())
+                _db.collection('users').document(firebaseUser.uid).snapshots())
             .map((DocumentSnapshot data) {
           Map<String, dynamic> _result = Map.from(_defaultProfileData);
           _result.addAll(data.data ?? {});

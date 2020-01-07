@@ -35,54 +35,35 @@ class DebugPageContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         ExpansionTile(
-          title: Text('FCM Token', style: Theme
-              .of(context)
-              .textTheme
-              .title),
+          title: Text('FCM Token', style: Theme.of(context).textTheme.title),
           children: <Widget>[
             FutureBuilder<String>(
               future: _firebaseCloudMessaging.getToken(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return SelectableText(snapshot.data,
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .body2);
+                      style: Theme.of(context).textTheme.body2);
                 }
                 return Text('No Data',
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .body2);
+                    style: Theme.of(context).textTheme.body2);
               },
             ),
           ],
         ),
         ExpansionTile(
           title: Text('Profile and Account',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .title),
+              style: Theme.of(context).textTheme.title),
           children: <Widget>[
             StreamBuilder(
               stream: authService.userStream,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return SelectableText(snapshot.data.toString(),
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .body2);
+                      style: Theme.of(context).textTheme.body2);
                 }
                 return Text(
-                    'User Data Not Available\nStatus: ${snapshot.connectionState
-                        .toString()}',
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .body2);
+                    'User Data Not Available\nStatus: ${snapshot.connectionState.toString()}',
+                    style: Theme.of(context).textTheme.body2);
               },
             ),
             Divider(height: 25.0, thickness: 3.0),
@@ -91,18 +72,11 @@ class DebugPageContent extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return SelectableText(snapshot.data.toString(),
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .body2);
+                      style: Theme.of(context).textTheme.body2);
                 }
                 return Text(
-                    'User Profile Not Available\nStatus: ${snapshot
-                        .connectionState.toString()}',
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .body2);
+                    'User Profile Not Available\nStatus: ${snapshot.connectionState.toString()}',
+                    style: Theme.of(context).textTheme.body2);
               },
             ),
             Divider(height: 25.0, thickness: 3.0),
@@ -113,24 +87,19 @@ class DebugPageContent extends StatelessWidget {
                   authService.signOut();
                 },
                 child: Text('Sign Out'),
-                color: Theme
-                    .of(context)
-                    .errorColor,
+                color: Theme.of(context).errorColor,
               ),
             ),
           ],
         ),
         ExpansionTile(
-          title: Text('Logs', style: Theme
-              .of(context)
-              .textTheme
-              .title),
+          title: Text('Logs', style: Theme.of(context).textTheme.title),
           children: <Widget>[
             StreamBuilder(
               stream: loggingService.logsStream,
               builder: (context,
                   AsyncSnapshot<List<Timestamped<Map<String, dynamic>>>>
-                  snapshot) {
+                      snapshot) {
                 if (snapshot.hasData) {
                   return ListView(
                     shrinkWrap: true,
@@ -141,29 +110,20 @@ class DebugPageContent extends StatelessWidget {
                         return ListTile(
                             title: Text(entry.timestamp.toLocal().toString()),
                             subtitle: SelectableText(entry.value.toString(),
-                                style: Theme
-                                    .of(context)
-                                    .textTheme
-                                    .body2));
+                                style: Theme.of(context).textTheme.body2));
                       })
                     ],
                   );
                 }
                 return Text('Logs Not Available',
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .body2);
+                    style: Theme.of(context).textTheme.body2);
               },
             ),
           ],
         ),
         ExpansionTile(
           title:
-          Text('Trigger Tests', style: Theme
-              .of(context)
-              .textTheme
-              .title),
+              Text('Trigger Tests', style: Theme.of(context).textTheme.title),
           children: <Widget>[
             Container(
               margin: EdgeInsets.symmetric(horizontal: 2.0),
@@ -234,9 +194,7 @@ class DebugPageContent extends StatelessWidget {
                   Crashlytics.instance.crash();
                 },
                 child: Text('Crash App'),
-                color: Theme
-                    .of(context)
-                    .errorColor,
+                color: Theme.of(context).errorColor,
               ),
             ),
           ],

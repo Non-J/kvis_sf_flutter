@@ -2,6 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+extension HexColor on Color {
+  static Color fromHex(String hexString) {
+    final buffer = StringBuffer();
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+    buffer.write(hexString.replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
+  }
+
+  /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
+  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+      '${alpha.toRadixString(16).padLeft(2, '0')}'
+      '${red.toRadixString(16).padLeft(2, '0')}'
+      '${green.toRadixString(16).padLeft(2, '0')}'
+      '${blue.toRadixString(16).padLeft(2, '0')}';
+}
+
 class ContentDisplay extends StatelessWidget {
   final RegExp colorRegex = RegExp(
       r'^#([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})?$');
@@ -65,16 +81,8 @@ class ContentDisplay extends StatelessWidget {
 
           if (snapshot.data.data['background'] != null) {
             if (colorRegex.hasMatch(snapshot.data.data['background'])) {
-              final colorMatch =
-                  colorRegex.firstMatch(snapshot.data.data['background']);
               background = BoxDecoration(
-                color: Color.fromRGBO(
-                  int.tryParse(colorMatch.group(1) ?? "", radix: 16) ?? 255,
-                  int.tryParse(colorMatch.group(2) ?? "", radix: 16) ?? 255,
-                  int.tryParse(colorMatch.group(3) ?? "", radix: 16) ?? 255,
-                  (int.tryParse(colorMatch.group(4) ?? "", radix: 16) ?? 0) /
-                      255,
-                ),
+                color: HexColor.fromHex(snapshot.data.data['background']),
               );
             } else {
               background = BoxDecoration(
@@ -87,58 +95,65 @@ class ContentDisplay extends StatelessWidget {
             }
           }
 
-          switch (snapshot.data.data['display_size']) {
-            case 'large':
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onTapFunction,
-                  child: Container(
-                    decoration: background,
-                    child: Column(
-                      children: <Widget>[
-                        ListTile(
-                          title: Text(
-                            snapshot.data.data['title'] ?? "",
-                            style: Theme.of(context)
-                                .textTheme
-                                .display2
-                                .apply(fontWeightDelta: 3),
-                          ),
-                          subtitle: Text(snapshot.data.data['details'] ?? ""),
-                          isThreeLine: true,
-                        ),
-                        Container(
-                          height: 300,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-              break;
+          TextStyle titleTextStyle = Theme
+              .of(context)
+              .textTheme
+              .title;
+          TextStyle detailsTextStyle = Theme
+              .of(context)
+              .textTheme
+              .subtitle;
 
-            case 'small':
-            default:
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onTapFunction,
-                  child: Container(
-                    decoration: background,
-                    child: ListTile(
-                      title: Text(
-                        snapshot.data.data['title'] ?? "",
-                        style: Theme.of(context).textTheme.title,
-                      ),
-                      subtitle: Text(snapshot.data.data['details'] ?? ""),
-                      isThreeLine: true,
+          if (snapshot.data.data['text_color'] != null) {
+            titleTextStyle = titleTextStyle.apply(
+                color: HexColor.fromHex(snapshot.data.data['text_color']));
+            detailsTextStyle = detailsTextStyle.apply(
+                color: HexColor.fromHex(snapshot.data.data['text_color']));
+          }
+          if (snapshot.data.data['title_fontweight'] != null) {
+            titleTextStyle = titleTextStyle.apply(
+                fontWeightDelta:
+                snapshot.data.data['title_fontweight'].toInt());
+          }
+          if (snapshot.data.data['detail_fontweight'] != null) {
+            detailsTextStyle = detailsTextStyle.apply(
+                fontWeightDelta:
+                snapshot.data.data['detail_fontweight'].toInt());
+          }
+
+          return Card(
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTapFunction,
+              child: Container(
+                decoration: background,
+                height: snapshot.data.data['height'] == null
+                    ? null
+                    : snapshot.data.data['height'].toDouble(),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: ListTile(
+                    title: Text(
+                      snapshot.data.data['title'] ?? '',
+                      style: titleTextStyle,
+                      textScaleFactor: snapshot.data.data['title_scale'] == null
+                          ? 1.0
+                          : snapshot.data.data['title_scale'].toDouble(),
                     ),
+                    subtitle: Text(
+                      snapshot.data.data['details'] ?? '',
+                      style: detailsTextStyle,
+                      textScaleFactor:
+                      snapshot.data.data['detail_scale'] == null
+                          ? 1.0
+                          : snapshot.data.data['detail_scale'].toDouble(),
+                    ),
+                    isThreeLine: true,
                   ),
                 ),
-              );
-              break;
-          }
+              ),
+            ),
+          );
         }
 
         return Card(
