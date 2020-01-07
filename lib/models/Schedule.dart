@@ -23,21 +23,17 @@ class ScheduledEvent {
   DateTime get endDate => DateTime(this.end.toLocal().year,
       this.end.toLocal().month, this.end.toLocal().day);
 
-  String get beginTimeString =>
-      (this.beginDate == this.endDate
-          ? DateFormat('Hm').format(this.begin.toLocal())
-          : '${DateFormat('d/MMM').format(this.begin.toLocal())} ${DateFormat(
-          'Hm').format(this.begin.toLocal())}');
+  String get beginTimeString => (this.beginDate == this.endDate
+      ? DateFormat('Hm').format(this.begin.toLocal())
+      : '${DateFormat('d/MMM').format(this.begin.toLocal())} ${DateFormat('Hm').format(this.begin.toLocal())}');
 
   String get endTimeString => (this.beginDate == this.endDate
       ? DateFormat('Hm').format(this.end.toLocal())
-      : '${DateFormat('d/MMM').format(this.end.toLocal())} ${DateFormat('Hm')
-      .format(this.end.toLocal())}');
+      : '${DateFormat('d/MMM').format(this.end.toLocal())} ${DateFormat('Hm').format(this.end.toLocal())}');
 
   @override
   String toString() {
-    return 'ScheduledEvent: $name, $location, $details, ${begin
-        .toString()}, ${end.toString()}';
+    return 'ScheduledEvent: $name, $location, $details, ${begin.toString()}, ${end.toString()}';
   }
 }
 
@@ -50,15 +46,14 @@ class ScheduleService {
 
   ScheduleService() {
     _eventsSubject.addStream(Observable.combineLatest2(
-        _db.collection('schedules').snapshots(),
-        authService.dataStream,
+            _db.collection('schedules').snapshots(),
+            authService.dataStream,
             (query, profile) => QueryProfilePair(query.documents, profile))
-    // Filter for targeted audience
-        .map((pair) =>
-        pair.left
+        // Filter for targeted audience
+        .map((pair) => pair.left
             .where((doc) => doc.data['audience'] == (pair.right['role']))
             .toList())
-    // Extract individual event entry
+        // Extract individual event entry
         .map((docs) {
       List<Map<String, dynamic>> result = [];
       docs.forEach((doc) {

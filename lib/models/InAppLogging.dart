@@ -22,14 +22,14 @@ class LoggingService {
     _logsSubject.addStream(_logsInput.timestamp().scan(
         (Queue<Timestamped<Map<String, dynamic>>> collection,
             Timestamped<Map<String, dynamic>> val, int idx) {
-          while (collection.length >
-              (configService.getValue('inAppLoggingHistoryCount') ?? 0)) {
+      while (collection.length >
+          (configService.getValue('inAppLoggingHistoryCount') ?? 0)) {
         collection.removeFirst();
       }
       collection.addLast(val);
       return collection;
     }, Queue<Timestamped<Map<String, dynamic>>>()).map(
-            (collection) => collection.toList()));
+        (collection) => collection.toList()));
   }
 
   void pushLogs(Map<String, dynamic> newLog) {

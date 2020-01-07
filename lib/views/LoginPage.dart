@@ -42,12 +42,7 @@ class LoginPage extends StatelessWidget {
                         padding: EdgeInsets.all(5.0),
                       ),
                       SigninForm(),
-                      GestureDetector(
-                        onLongPress: () {
-                          Navigator.pushNamed(context, '/debug');
-                        },
-                        child: LegalText(),
-                      ),
+                      LegalText(),
                     ],
                   ),
                 ),

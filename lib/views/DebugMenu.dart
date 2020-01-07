@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -109,24 +106,6 @@ class DebugPageContent extends StatelessWidget {
               },
             ),
             Divider(height: 25.0, thickness: 3.0),
-            FutureBuilder<File>(
-              future: authService.getProfilePicture(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Image.file(
-                    snapshot.data,
-                    height: 250.0,
-                  );
-                }
-                return Text(
-                    'No Profile Picture Data\nStatus: ${snapshot.connectionState
-                        .toString()}',
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .body2);
-              },
-            ),
             Container(
               margin: EdgeInsets.symmetric(horizontal: 2.0),
               child: RaisedButton(

@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:rxdart/rxdart.dart';
 
 Firestore _db = Firestore.instance;
@@ -142,39 +139,6 @@ class AuthService {
       _signingInStatusSubject.add(
           SigningInStatus(false, 'Sign-in Failed.\n${err.code.toString()}'));
     }
-  }
-
-  Future<File> getProfilePicture() async {
-    if (_user == null || _user.isAnonymous) {
-      return null;
-    }
-
-    File imageFile = File('${Directory.systemTemp.path}/profile_picture.jpg');
-
-    StorageReference profilePictureStorage = FirebaseStorage.instance
-        .ref()
-        .child('profiles/${_user.uid}/profile_picture.jpg');
-
-    try {
-      await profilePictureStorage.getMetadata();
-
-      await profilePictureStorage.writeToFile(imageFile).future;
-
-      return imageFile;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future updateProfileData(Map<String, dynamic> newData) {
-    return _db
-        .collection('users')
-        .document(_user.uid)
-        .setData(newData, merge: true);
-  }
-
-  Future sendResetPasswordLinkViaEmail() async {
-    return _auth.sendPasswordResetEmail(email: _user.email);
   }
 }
 

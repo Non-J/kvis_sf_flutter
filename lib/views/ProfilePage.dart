@@ -14,45 +14,6 @@ class ProfilePage extends StatelessWidget {
           padding: EdgeInsets.all(15.0),
           child: Column(
             children: <Widget>[
-              /*
-              NOTE: PROFILE PICTURE
-
-              FutureBuilder<File>(
-                future: authService.getProfilePicture(),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      break;
-                    case ConnectionState.active:
-                    case ConnectionState.done:
-                      if (snapshot.hasData) {
-                        return CircleAvatar(
-                          backgroundImage: FileImage(snapshot.data),
-                          radius: 120.0,
-                        );
-                      } else {
-                        return CircleAvatar(
-                          child: Text(
-                            'No Profile Picture',
-                          ),
-                          radius: 120.0,
-                        );
-                      }
-                      break;
-                  }
-
-                  return CircleAvatar(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                    radius: 120.0,
-                  );
-                },
-              ),
-              Divider(height: 25.0, thickness: 3.0),
-
-               */
               ProfileContent(),
               Divider(height: 25.0, thickness: 3.0),
               LegalText(),
@@ -119,19 +80,6 @@ class _ProfileContentState extends State<ProfileContent> {
                         vertical: 10.0,
                       ),
                     ),
-                    /*
-                    RaisedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/profileEditor',
-                            arguments: snapshot.data);
-                      },
-                      child: Text('Edit'),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 10.0,
-                      ),
-                    ),
-                    */
                     RaisedButton(
                       onPressed: () async {
                         await authService.signOut();
