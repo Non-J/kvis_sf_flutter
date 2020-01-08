@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:kvis_sf/models/Config.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LoggingService {
@@ -23,7 +22,8 @@ class LoggingService {
         (Queue<Timestamped<Map<String, dynamic>>> collection,
             Timestamped<Map<String, dynamic>> val, int idx) {
       while (collection.length >
-          (configService.getValue('inAppLoggingHistoryCount') ?? 0)) {
+          // CONFIG: In app log size
+          (0)) {
         collection.removeFirst();
       }
       collection.addLast(val);

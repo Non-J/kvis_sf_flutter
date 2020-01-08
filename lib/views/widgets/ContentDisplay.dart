@@ -5,8 +5,8 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 extension HexColor on Color {
   static Color fromHex(String hexString) {
     final buffer = StringBuffer();
-    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
     buffer.write(hexString.replaceFirst('#', ''));
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
     return Color(int.parse(buffer.toString(), radix: 16));
   }
 
@@ -18,13 +18,10 @@ extension HexColor on Color {
       '${blue.toRadixString(16).padLeft(2, '0')}';
 }
 
-class ContentDisplay extends StatelessWidget {
-  final RegExp colorRegex = RegExp(
-      r'^#([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})?$');
-
+class ContentDisplayFromDocumentReference extends StatelessWidget {
   final DocumentReference contentDocument;
 
-  ContentDisplay({@required this.contentDocument});
+  ContentDisplayFromDocumentReference({@required this.contentDocument});
 
   @override
   Widget build(BuildContext context) {
@@ -33,127 +30,14 @@ class ContentDisplay extends StatelessWidget {
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasData) {
-          var onTapFunction;
-
-          switch (snapshot.data.data['content_type']) {
-            case 'url_webview':
-              onTapFunction = () {
-                url_launcher.launch(snapshot.data.data['content'],
-                    forceWebView: true);
-              };
-              break;
-            case 'url_external':
-              onTapFunction = () {
-                url_launcher.launch(snapshot.data.data['content']);
-              };
-              break;
-            case 'list_content':
-              onTapFunction = () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => ListContentDisplayPage(
-                      contentDocument: contentDocument,
-                    ),
-                  ),
-                );
-              };
-              break;
-            case 'markdown':
-              break;
-            case 'plain_text':
-              onTapFunction = () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) =>
-                        PlaintextContentDisplayPage(
-                      contentDocument: contentDocument,
-                    ),
-                  ),
-                );
-              };
-              break;
-            default:
-              onTapFunction = null;
-              break;
+          if (snapshot.data.data != null) {
+            return ContentDisplay(
+              content: snapshot.data.data,
+              contentDocument: contentDocument,
+            );
+          } else {
+            return Container();
           }
-
-          BoxDecoration background = BoxDecoration();
-
-          if (snapshot.data.data['background'] != null) {
-            if (colorRegex.hasMatch(snapshot.data.data['background'])) {
-              background = BoxDecoration(
-                color: HexColor.fromHex(snapshot.data.data['background']),
-              );
-            } else {
-              background = BoxDecoration(
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                  image: Image.network(snapshot.data.data['background']).image,
-                ),
-              );
-            }
-          }
-
-          TextStyle titleTextStyle = Theme
-              .of(context)
-              .textTheme
-              .title;
-          TextStyle detailsTextStyle = Theme
-              .of(context)
-              .textTheme
-              .subtitle;
-
-          if (snapshot.data.data['text_color'] != null) {
-            titleTextStyle = titleTextStyle.apply(
-                color: HexColor.fromHex(snapshot.data.data['text_color']));
-            detailsTextStyle = detailsTextStyle.apply(
-                color: HexColor.fromHex(snapshot.data.data['text_color']));
-          }
-          if (snapshot.data.data['title_fontweight'] != null) {
-            titleTextStyle = titleTextStyle.apply(
-                fontWeightDelta:
-                snapshot.data.data['title_fontweight'].toInt());
-          }
-          if (snapshot.data.data['detail_fontweight'] != null) {
-            detailsTextStyle = detailsTextStyle.apply(
-                fontWeightDelta:
-                snapshot.data.data['detail_fontweight'].toInt());
-          }
-
-          return Card(
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTapFunction,
-              child: Container(
-                decoration: background,
-                height: snapshot.data.data['height'] == null
-                    ? null
-                    : snapshot.data.data['height'].toDouble(),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: ListTile(
-                    title: Text(
-                      snapshot.data.data['title'] ?? '',
-                      style: titleTextStyle,
-                      textScaleFactor: snapshot.data.data['title_scale'] == null
-                          ? 1.0
-                          : snapshot.data.data['title_scale'].toDouble(),
-                    ),
-                    subtitle: Text(
-                      snapshot.data.data['details'] ?? '',
-                      style: detailsTextStyle,
-                      textScaleFactor:
-                      snapshot.data.data['detail_scale'] == null
-                          ? 1.0
-                          : snapshot.data.data['detail_scale'].toDouble(),
-                    ),
-                    isThreeLine: true,
-                  ),
-                ),
-              ),
-            ),
-          );
         }
 
         return Card(
@@ -164,10 +48,162 @@ class ContentDisplay extends StatelessWidget {
   }
 }
 
-class ListContentDisplayPage extends StatelessWidget {
+class ContentDisplay extends StatelessWidget {
+  static RegExp colorRegex = RegExp(
+      r'^#([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})?$');
+
+  const ContentDisplay({
+    Key key,
+    @required this.content,
+    this.contentDocument,
+  }) : super(key: key);
+
+  final DocumentReference contentDocument;
+  final Map content;
+
+  @override
+  Widget build(BuildContext context) {
+    var onTapFunction;
+
+    switch (content['content_type']) {
+      case 'url_webview':
+        onTapFunction = () {
+          url_launcher.launch(content['content'], forceWebView: true);
+        };
+        break;
+      case 'url_external':
+        onTapFunction = () {
+          url_launcher.launch(content['content']);
+        };
+        break;
+      case 'ref_content':
+        onTapFunction = () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  RefContentDisplayPage(
+                    contentDocument: contentDocument,
+                  ),
+            ),
+          );
+        };
+        break;
+      case 'list_content':
+        onTapFunction = () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  ListContentDisplayPage(
+                    contentDocument: contentDocument,
+                  ),
+            ),
+          );
+        };
+        break;
+      case 'markdown':
+        break;
+      case 'plain_text':
+        onTapFunction = () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  PlaintextContentDisplayPage(
+                    content: content['content'] == null
+                        ? 'None'
+                        : content['content'].toString(),
+                    title:
+                    content['title'] == null ? '' : content['title'].toString(),
+                  ),
+            ),
+          );
+        };
+        break;
+      default:
+        onTapFunction = null;
+        break;
+    }
+
+    BoxDecoration background = BoxDecoration();
+
+    if (content['background'] != null) {
+      if (colorRegex.hasMatch(content['background'])) {
+        background = BoxDecoration(
+          color: HexColor.fromHex(content['background']),
+        );
+      } else {
+        background = BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            image: Image
+                .network(content['background'])
+                .image,
+          ),
+        );
+      }
+    }
+
+    TextStyle titleTextStyle = Theme
+        .of(context)
+        .textTheme
+        .title;
+    TextStyle detailsTextStyle = Theme
+        .of(context)
+        .textTheme
+        .subtitle;
+
+    if (content['text_color'] != null) {
+      titleTextStyle =
+          titleTextStyle.apply(color: HexColor.fromHex(content['text_color']));
+      detailsTextStyle = detailsTextStyle.apply(
+          color: HexColor.fromHex(content['text_color']));
+    }
+    if (content['title_fontweight'] != null) {
+      titleTextStyle = titleTextStyle.apply(
+          fontWeightDelta: content['title_fontweight'].toInt());
+    }
+    if (content['detail_fontweight'] != null) {
+      detailsTextStyle = detailsTextStyle.apply(
+          fontWeightDelta: content['detail_fontweight'].toInt());
+    }
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTapFunction,
+        child: Container(
+          decoration: background,
+          height:
+          content['height'] == null ? null : content['height'].toDouble(),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: ListTile(
+              title: Text(
+                content['title'] ?? '',
+                style: titleTextStyle,
+                textScaleFactor: content['title_scale'] == null
+                    ? 1.0
+                    : content['title_scale'].toDouble(),
+              ),
+              subtitle: Text(
+                content['details'] ?? '',
+                style: detailsTextStyle,
+                textScaleFactor: content['detail_scale'] == null
+                    ? 1.0
+                    : content['detail_scale'].toDouble(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RefContentDisplayPage extends StatelessWidget {
   final DocumentReference contentDocument;
 
-  ListContentDisplayPage({@required this.contentDocument});
+  RefContentDisplayPage({@required this.contentDocument});
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +215,8 @@ class ListContentDisplayPage extends StatelessWidget {
 
         if (snapshot.hasData) {
           final List<Widget> contentList = snapshot.data.data['content']
-              .map<Widget>((document) => ContentDisplay(
+              .map<Widget>((document) =>
+              ContentDisplayFromDocumentReference(
                     contentDocument: document,
                   ))
               .toList();
@@ -203,10 +240,10 @@ class ListContentDisplayPage extends StatelessWidget {
   }
 }
 
-class PlaintextContentDisplayPage extends StatelessWidget {
+class ListContentDisplayPage extends StatelessWidget {
   final DocumentReference contentDocument;
 
-  PlaintextContentDisplayPage({@required this.contentDocument});
+  ListContentDisplayPage({@required this.contentDocument});
 
   @override
   Widget build(BuildContext context) {
@@ -217,13 +254,18 @@ class PlaintextContentDisplayPage extends StatelessWidget {
         Widget childContent = Center(child: CircularProgressIndicator());
 
         if (snapshot.hasData) {
-          childContent = SingleChildScrollView(
-            padding: EdgeInsets.all(15),
-            child: SelectableText(
-              snapshot.data.data['content'].toString(),
-              style:
-                  Theme.of(context).textTheme.body1.apply(fontSizeFactor: 1.2),
-            ),
+          final List<Widget> contentList =
+          snapshot.data.data['content'].map<Widget>((document) {
+            if (document is DocumentReference) {
+              return ContentDisplayFromDocumentReference(
+                  contentDocument: document);
+            } else {
+              return ContentDisplay(content: document);
+            }
+          }).toList();
+          childContent = ListView(
+            padding: EdgeInsets.all(10),
+            children: contentList,
           );
         }
 
@@ -237,6 +279,34 @@ class PlaintextContentDisplayPage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class PlaintextContentDisplayPage extends StatelessWidget {
+  final String content, title;
+
+  PlaintextContentDisplayPage({@required this.content, @required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(15),
+          child: SelectableText(
+            content,
+            style: Theme
+                .of(context)
+                .textTheme
+                .body1
+                .apply(fontSizeFactor: 1.2),
+          ),
+        ),
+      ),
     );
   }
 }

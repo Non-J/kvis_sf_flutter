@@ -149,6 +149,15 @@ class ProfileTextContentDisplayWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
+        data['name'] == null
+            ? Container()
+            : Text(
+          data['name'].toString(),
+          style: Theme
+              .of(context)
+              .textTheme
+              .display1,
+        ),
         ListTile(
           title: Text(
               '${data['school'] ?? 'Unaffiliated'} | ${data['country'] ??

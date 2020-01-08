@@ -1,10 +1,38 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:kvis_sf/models/Config.dart';
-import 'package:kvis_sf/models/Schedule.dart';
-import 'package:kvis_sf/views/ScheduleDayPage.dart';
+import 'package:kvis_sf/models/Content.dart';
+import 'package:kvis_sf/views/widgets/ContentDisplay.dart';
+
+String formatDateTimeRange(DateTime begin, DateTime end) {
+  DateTime beginDate = DateTime(
+      begin
+          .toLocal()
+          .year, begin
+      .toLocal()
+      .month, begin
+      .toLocal()
+      .day);
+  DateTime endDate =
+  DateTime(end
+      .toLocal()
+      .year, end
+      .toLocal()
+      .month, end
+      .toLocal()
+      .day);
+  String beginText = (beginDate == endDate
+      ? DateFormat('Hm').format(begin.toLocal())
+      : '${DateFormat('d/MMM').format(begin.toLocal())} ${DateFormat('Hm')
+      .format(begin.toLocal())}');
+  String endText = (beginDate == endDate
+      ? DateFormat('Hm').format(end.toLocal())
+      : '${DateFormat('d/MMM').format(end.toLocal())} ${DateFormat('Hm').format(
+      end.toLocal())}');
+  return '$beginText - $endText';
+}
 
 class ScheduleWidget extends StatelessWidget {
   @override
@@ -23,13 +51,11 @@ class CurrentEventDisplayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: scheduleService.eventsStream,
-      builder: (context, AsyncSnapshot<List<ScheduledEvent>> snapshot) {
+      stream: contentService.fullScheduleStream,
+      builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
         if (snapshot.hasData) {
-          final Duration upcomingEventsDisplayBefore = Duration(
-              hours: -(configService
-                  .getValue('scheduleUpcomingEventsDisplayHours') ??
-                  2));
+          // CONFIG: scheduleUpcomingEventsDisplayHours
+          final Duration upcomingEventsDisplayBefore = Duration(hours: -2);
 
           return Card(
             child: Container(
@@ -48,8 +74,8 @@ class CurrentEventDisplayWidget extends StatelessWidget {
                     return CurrentEventEntryWidget(
                       key: _key,
                       event: entry,
-                      timeDisplayBegin: entry.begin,
-                      timeDisplayEnd: entry.end,
+                      timeDisplayBegin: entry['begin'],
+                      timeDisplayEnd: entry['end'],
                     );
                   }).toList(),
                   Divider(height: 25.0, thickness: 3.0),
@@ -66,13 +92,13 @@ class CurrentEventDisplayWidget extends StatelessWidget {
                       key: _key,
                       event: entry,
                       timeDisplayBegin:
-                      entry.begin.add(upcomingEventsDisplayBefore),
-                      timeDisplayEnd: entry.begin,
+                      entry['begin'].add(upcomingEventsDisplayBefore),
+                      timeDisplayEnd: entry['begin'],
                     );
                   }).toList(),
                   Divider(height: 25.0, thickness: 3.0),
                   Text(
-                    'Time shown is in the timezone of your device.\nWe recommend that you change it to Thailand\'s local time.',
+                    'Time shown is in the timezone of your device.\n',
                     style: Theme
                         .of(context)
                         .textTheme
@@ -113,7 +139,7 @@ class CurrentEventEntryWidget extends StatefulWidget {
   _CurrentEventEntryWidgetState createState() =>
       _CurrentEventEntryWidgetState();
 
-  final ScheduledEvent event;
+  final Map<String, dynamic> event;
   final DateTime timeDisplayBegin, timeDisplayEnd;
 
   CurrentEventEntryWidget({@required this.event,
@@ -169,10 +195,11 @@ class _CurrentEventEntryWidgetState extends State<CurrentEventEntryWidget> {
       child: Container(
         padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
         child: ListTile(
-          title: Text(widget.event.name),
+          title: Text(widget.event['title']),
           subtitle: Text(
-              '${widget.event.beginTimeString} - ${widget.event
-                  .endTimeString} at ${widget.event.location}'),
+              '${formatDateTimeRange(
+                  widget.event['begin'], widget.event['end'])}\n${widget
+                  .event['details']}'),
         ),
       ),
     );
@@ -183,95 +210,17 @@ class CalendarDateList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: scheduleService.eventsStream,
-      builder: (context, AsyncSnapshot<List<ScheduledEvent>> snapshot) {
+      stream: contentService.scheduleStream,
+      builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
         if (snapshot.hasData) {
-          Set<DateTime> dateSet = Set();
-
-          snapshot.data.forEach((event) {
-            for (DateTime date = event.beginDate;
-            date.isBefore(event.endDate.add(Duration(days: 1)));
-            date = date.add(Duration(days: 1))) {
-              dateSet.add(date);
-            }
-          });
-
-          final List<DateTime> dateList = dateSet.toList()
-            ..sort((x, y) => x.compareTo(y));
-
-          final DateTime firstDateTime = DateTime.fromMillisecondsSinceEpoch(
-              configService.getValue('scheduleDayOffsetTime') ?? 0);
-          final DateTime firstDate = DateTime(firstDateTime
-              .toLocal()
-              .year,
-              firstDateTime
-                  .toLocal()
-                  .month, firstDateTime
-                  .toLocal()
-                  .day);
-
-          final Map<int, Color> weekdayColor = {
-            DateTime.monday: Colors.yellow.shade300.withAlpha(128),
-            DateTime.tuesday: Colors.pink.shade300.withAlpha(128),
-            DateTime.wednesday: Colors.green.shade300.withAlpha(128),
-            DateTime.thursday: Colors.orange.shade300.withAlpha(128),
-            DateTime.friday: Colors.blue.shade300.withAlpha(128),
-            DateTime.saturday: Colors.purple.shade300.withAlpha(128),
-            DateTime.sunday: Colors.red.shade300.withAlpha(128),
-          };
-
+          final List<Widget> contentList = snapshot.data
+              .map((document) =>
+              ContentDisplayFromDocumentReference(
+                contentDocument: document.reference,
+              ))
+              .toList();
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: dateList
-                .map((date) =>
-                Card(
-                  color: weekdayColor[date.weekday],
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ScheduleDayPage(
-                                title:
-                                'Day ${date
-                                    .difference(firstDate)
-                                    .inDays}: ${DateFormat('EEEE d MMMM y')
-                                    .format(date)}',
-                                displayBegin: date,
-                                displayEnd: date.add(Duration(days: 1)),
-                              ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            'Day ${date
-                                .difference(firstDate)
-                                .inDays}',
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .display1,
-                          ),
-                          Text(
-                            DateFormat('EEEE d MMMM y').format(date),
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .display1,
-                            textScaleFactor: 0.7,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ))
-                .toList(),
+            children: contentList,
           );
         }
 
