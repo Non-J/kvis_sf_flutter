@@ -1,6 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+
+String formatDateTimeRange(DateTime begin, DateTime end) {
+  DateTime beginDate = DateTime(
+      begin
+          .toLocal()
+          .year, begin
+      .toLocal()
+      .month, begin
+      .toLocal()
+      .day);
+  DateTime endDate =
+  DateTime(end
+      .toLocal()
+      .year, end
+      .toLocal()
+      .month, end
+      .toLocal()
+      .day);
+  String beginText = (beginDate == endDate
+      ? DateFormat('Hm').format(begin.toLocal())
+      : '${DateFormat('d/MMM').format(begin.toLocal())} ${DateFormat('Hm')
+      .format(begin.toLocal())}');
+  String endText = (beginDate == endDate
+      ? DateFormat('Hm').format(end.toLocal())
+      : '${DateFormat('d/MMM').format(end.toLocal())} ${DateFormat('Hm').format(
+      end.toLocal())}');
+  return '$beginText - $endText';
+}
 
 extension HexColor on Color {
   static Color fromHex(String hexString) {
@@ -191,7 +220,12 @@ class ContentDisplay extends StatelessWidget {
                     : content['title_scale'].toDouble(),
               ),
               subtitle: Text(
-                content['details'] ?? '',
+                '${content['content_type'] == 'schedule' ? formatDateTimeRange(
+                    (content['begin'] is Timestamp
+                        ? content['begin'].toDate()
+                        : DateTime.now()), (content['end'] is Timestamp
+                    ? content['end'].toDate()
+                    : DateTime.now())) + '\n' : ''}${content['details'] ?? ''}',
                 style: detailsTextStyle,
                 textScaleFactor: content['detail_scale'] == null
                     ? 1.0

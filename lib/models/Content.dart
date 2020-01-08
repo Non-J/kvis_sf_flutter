@@ -39,20 +39,23 @@ class ContentService {
     _fullScheduleSubject.addStream(_scheduleSubject.stream.map((docs) {
       List<Map<String, dynamic>> result = [];
       docs.forEach((doc) {
-        if (doc.data['content_type'] == 'schedule') {
-          (doc.data['content'] ?? []).forEach((entry) {
-            var newEntry = Map<String, dynamic>.from(entry);
-            newEntry.addAll({
-              'begin': (entry['begin'] is Timestamp
-                  ? entry['begin'].toDate()
-                  : DateTime.now()),
-              'end': (entry['end'] is Timestamp
-                  ? entry['end'].toDate()
-                  : DateTime.now()),
-            });
-            result.add(newEntry);
-          });
+        if (doc.data['content_type'] != 'list_content') {
+          return;
         }
+        (doc.data['content'] ?? []).forEach((entry) {
+          var newEntry = Map<String, dynamic>.from(entry);
+          newEntry.addAll({
+            'begin': (entry['begin'] is Timestamp
+                ? entry['begin'].toDate()
+                : DateTime.now()),
+            'end': (entry['end'] is Timestamp
+                ? entry['end'].toDate()
+                : DateTime.now()),
+          });
+          if (newEntry['content_type'] == 'schedulec') {
+            result.add(newEntry);
+          }
+        });
       });
       return result;
     }));

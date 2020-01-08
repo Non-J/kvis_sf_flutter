@@ -2,37 +2,8 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:kvis_sf/models/Content.dart';
 import 'package:kvis_sf/views/widgets/ContentDisplay.dart';
-
-String formatDateTimeRange(DateTime begin, DateTime end) {
-  DateTime beginDate = DateTime(
-      begin
-          .toLocal()
-          .year, begin
-      .toLocal()
-      .month, begin
-      .toLocal()
-      .day);
-  DateTime endDate =
-  DateTime(end
-      .toLocal()
-      .year, end
-      .toLocal()
-      .month, end
-      .toLocal()
-      .day);
-  String beginText = (beginDate == endDate
-      ? DateFormat('Hm').format(begin.toLocal())
-      : '${DateFormat('d/MMM').format(begin.toLocal())} ${DateFormat('Hm')
-      .format(begin.toLocal())}');
-  String endText = (beginDate == endDate
-      ? DateFormat('Hm').format(end.toLocal())
-      : '${DateFormat('d/MMM').format(end.toLocal())} ${DateFormat('Hm').format(
-      end.toLocal())}');
-  return '$beginText - $endText';
-}
 
 class ScheduleWidget extends StatelessWidget {
   @override
