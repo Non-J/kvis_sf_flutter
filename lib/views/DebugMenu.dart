@@ -4,22 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:kvis_sf/models/Authentication.dart';
 import 'package:kvis_sf/models/InAppLogging.dart';
 import 'package:kvis_sf/models/Notification.dart';
-import 'package:kvis_sf/views/widgets/TriggerableWidgets.dart';
 import 'package:rxdart/rxdart.dart';
 
 class DebugPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FlashNotificationOverlay(
-      child: Scaffold(
-        appBar: AppBar(title: Text('Debug Menu (For Developers)')),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(15.0),
-            scrollDirection: Axis.vertical,
-            primary: true,
-            child: DebugPageContent(),
-          ),
+    return Scaffold(
+      appBar: AppBar(title: Text('Debug Menu (For Developers)')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(15.0),
+          scrollDirection: Axis.vertical,
+          primary: true,
+          child: DebugPageContent(),
         ),
       ),
     );
@@ -125,45 +122,6 @@ class DebugPageContent extends StatelessWidget {
           title:
               Text('Trigger Tests', style: Theme.of(context).textTheme.title),
           children: <Widget>[
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 2.0),
-              child: RaisedButton(
-                onPressed: () {
-                  FlashNotification.SimpleDialog(
-                    context,
-                    title: Text('Test Notification'),
-                    message: Text('Test Content'),
-                  );
-                },
-                child: Text('Dialog Test'),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-              child: RaisedButton(
-                onPressed: () {
-                  FlashNotification.TopNotification(
-                    context,
-                    title: Text('Test Notification'),
-                    message: Text('Test Content'),
-                  );
-                },
-                child: Text('Notification Test'),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-              child: RaisedButton(
-                onPressed: () {
-                  FlashNotification.TopNotificationCritical(
-                    context,
-                    title: Text('Test Notification'),
-                    message: Text('Test Content'),
-                  );
-                },
-                child: Text('Critical Notification Test'),
-              ),
-            ),
             Container(
               margin: EdgeInsets.symmetric(horizontal: 2.0),
               child: RaisedButton(

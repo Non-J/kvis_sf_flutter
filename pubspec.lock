@@ -155,20 +155,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
-  flash:
-    dependency: "direct main"
-    description:
-      name: flash
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
-  flushbar:
-    dependency: "direct main"
-    description:
-      name: flushbar
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.9.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -240,13 +226,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.4"
-  image_picker:
-    dependency: "direct main"
-    description:
-      name: image_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.2+3"
   intl:
     dependency: transitive
     description:

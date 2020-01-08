@@ -18,10 +18,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasData) {
           final List<Widget> contentList = snapshot.data.documents
-              .map((document) =>
-              ContentDisplayFromDocumentReference(
-                contentDocument: document.reference,
-              ))
+              .map((document) => ContentDisplayFromDocumentReference(
+                    contentDocument: document.reference,
+                  ))
               .toList();
           return ListView(
             padding: EdgeInsets.all(10),
