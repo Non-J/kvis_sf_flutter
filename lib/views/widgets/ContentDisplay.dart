@@ -5,29 +5,15 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 String formatDateTimeRange(DateTime begin, DateTime end) {
   DateTime beginDate = DateTime(
-      begin
-          .toLocal()
-          .year, begin
-      .toLocal()
-      .month, begin
-      .toLocal()
-      .day);
+      begin.toLocal().year, begin.toLocal().month, begin.toLocal().day);
   DateTime endDate =
-  DateTime(end
-      .toLocal()
-      .year, end
-      .toLocal()
-      .month, end
-      .toLocal()
-      .day);
+      DateTime(end.toLocal().year, end.toLocal().month, end.toLocal().day);
   String beginText = (beginDate == endDate
       ? DateFormat('Hm').format(begin.toLocal())
-      : '${DateFormat('d/MMM').format(begin.toLocal())} ${DateFormat('Hm')
-      .format(begin.toLocal())}');
+      : '${DateFormat('d/MMM').format(begin.toLocal())} ${DateFormat('Hm').format(begin.toLocal())}');
   String endText = (beginDate == endDate
       ? DateFormat('Hm').format(end.toLocal())
-      : '${DateFormat('d/MMM').format(end.toLocal())} ${DateFormat('Hm').format(
-      end.toLocal())}');
+      : '${DateFormat('d/MMM').format(end.toLocal())} ${DateFormat('Hm').format(end.toLocal())}');
   return '$beginText - $endText';
 }
 
@@ -114,10 +100,9 @@ class ContentDisplay extends StatelessWidget {
         onTapFunction = () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  RefContentDisplayPage(
-                    contentDocument: contentDocument,
-                  ),
+              builder: (BuildContext context) => RefContentDisplayPage(
+                contentDocument: contentDocument,
+              ),
             ),
           );
         };
@@ -126,10 +111,9 @@ class ContentDisplay extends StatelessWidget {
         onTapFunction = () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  ListContentDisplayPage(
-                    contentDocument: contentDocument,
-                  ),
+              builder: (BuildContext context) => ListContentDisplayPage(
+                contentDocument: contentDocument,
+              ),
             ),
           );
         };
@@ -140,14 +124,13 @@ class ContentDisplay extends StatelessWidget {
         onTapFunction = () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  PlaintextContentDisplayPage(
-                    content: content['content'] == null
-                        ? 'None'
-                        : content['content'].toString(),
-                    title:
+              builder: (BuildContext context) => PlaintextContentDisplayPage(
+                content: content['content'] == null
+                    ? 'None'
+                    : content['content'].toString(),
+                title:
                     content['title'] == null ? '' : content['title'].toString(),
-                  ),
+              ),
             ),
           );
         };
@@ -169,22 +152,14 @@ class ContentDisplay extends StatelessWidget {
           image: DecorationImage(
             fit: BoxFit.cover,
             alignment: Alignment.center,
-            image: Image
-                .network(content['background'])
-                .image,
+            image: Image.network(content['background']).image,
           ),
         );
       }
     }
 
-    TextStyle titleTextStyle = Theme
-        .of(context)
-        .textTheme
-        .title;
-    TextStyle detailsTextStyle = Theme
-        .of(context)
-        .textTheme
-        .subtitle;
+    TextStyle titleTextStyle = Theme.of(context).textTheme.title;
+    TextStyle detailsTextStyle = Theme.of(context).textTheme.subtitle;
 
     if (content['text_color'] != null) {
       titleTextStyle =
@@ -208,7 +183,7 @@ class ContentDisplay extends StatelessWidget {
         child: Container(
           decoration: background,
           height:
-          content['height'] == null ? null : content['height'].toDouble(),
+              content['height'] == null ? null : content['height'].toDouble(),
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: ListTile(
@@ -220,12 +195,7 @@ class ContentDisplay extends StatelessWidget {
                     : content['title_scale'].toDouble(),
               ),
               subtitle: Text(
-                '${content['content_type'] == 'schedule' ? formatDateTimeRange(
-                    (content['begin'] is Timestamp
-                        ? content['begin'].toDate()
-                        : DateTime.now()), (content['end'] is Timestamp
-                    ? content['end'].toDate()
-                    : DateTime.now())) + '\n' : ''}${content['details'] ?? ''}',
+                '${content['content_type'] == 'schedule' ? formatDateTimeRange((content['begin'] is Timestamp ? content['begin'].toDate() : DateTime.now()), (content['end'] is Timestamp ? content['end'].toDate() : DateTime.now())) + '\n' : ''}${content['details'] ?? ''}',
                 style: detailsTextStyle,
                 textScaleFactor: content['detail_scale'] == null
                     ? 1.0
@@ -254,8 +224,7 @@ class RefContentDisplayPage extends StatelessWidget {
 
         if (snapshot.hasData) {
           final List<Widget> contentList = snapshot.data.data['content']
-              .map<Widget>((document) =>
-              ContentDisplayFromDocumentReference(
+              .map<Widget>((document) => ContentDisplayFromDocumentReference(
                     contentDocument: document,
                   ))
               .toList();
@@ -294,7 +263,7 @@ class ListContentDisplayPage extends StatelessWidget {
 
         if (snapshot.hasData) {
           final List<Widget> contentList =
-          snapshot.data.data['content'].map<Widget>((document) {
+              snapshot.data.data['content'].map<Widget>((document) {
             if (document is DocumentReference) {
               return ContentDisplayFromDocumentReference(
                   contentDocument: document);
@@ -338,11 +307,7 @@ class PlaintextContentDisplayPage extends StatelessWidget {
           padding: EdgeInsets.all(15),
           child: SelectableText(
             content,
-            style: Theme
-                .of(context)
-                .textTheme
-                .body1
-                .apply(fontSizeFactor: 1.2),
+            style: Theme.of(context).textTheme.body1.apply(fontSizeFactor: 1.2),
           ),
         ),
       ),

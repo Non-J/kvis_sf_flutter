@@ -52,7 +52,7 @@ class ContentService {
                 ? entry['end'].toDate()
                 : DateTime.now()),
           });
-          if (newEntry['content_type'] == 'schedulec') {
+          if (newEntry['content_type'] == 'schedule') {
             result.add(newEntry);
           }
         });

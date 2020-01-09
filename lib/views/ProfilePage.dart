@@ -192,6 +192,16 @@ class ProfileTextContentDisplayWidget extends StatelessWidget {
                     '${data['proj_location'] ?? 'To Be Announced'} | ${data['proj_field'] ?? '-'}'),
                 subtitle: Text('Presentation Location | Categories'),
               ),
+        ...((data['display_information'] ?? []).map((entry) {
+          if (entry['title'] != null && entry['value'] != null) {
+            return ListTile(
+              title: Text(entry['value'].toString()),
+              subtitle: Text(entry['title'].toString()),
+            );
+          } else {
+            return Container();
+          }
+        }).toList()),
         data['information'] == null
             ? Container()
             : ListTile(

@@ -1,7 +1,7 @@
 name: kvis_sf
 description: KVIS Science Fair Application
 
-version: 0.0.1+3
+version: 0.0.1+5
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
