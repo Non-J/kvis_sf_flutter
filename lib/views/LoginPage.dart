@@ -15,7 +15,7 @@ class LoginPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: ScrollConfiguration(
-            behavior: NoGrowScrollBehavior(),
+            behavior: NoGlowScrollBehavior(),
             child: SingleChildScrollView(
               child: Center(
                 child: FittedBox(

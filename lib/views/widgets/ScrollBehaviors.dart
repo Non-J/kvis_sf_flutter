@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-class NoGrowScrollBehavior extends ScrollBehavior {
+class NoGlowScrollBehavior extends ScrollBehavior {
   @override
   Widget buildViewportChrome(
       BuildContext context, Widget child, AxisDirection axisDirection) {

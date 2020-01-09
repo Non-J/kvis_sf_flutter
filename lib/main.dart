@@ -49,7 +49,9 @@ class _MyAppState extends State<MyApp> {
         loggingService
             .pushLogs({'source': 'fcmNotificationMessage', 'message': message});
         localNotificationService.sendMessage(
-            title: 'Test Message', body: message.toString(), payload: null);
+            title: message['notification']['title'],
+            body: message['notification']['body'],
+            payload: null);
       },
       onResume: (Map<String, dynamic> message) async {
         // App is in background while notification is received
@@ -63,6 +65,10 @@ class _MyAppState extends State<MyApp> {
             .pushLogs({'source': 'fcmNotificationLaunch', 'message': message});
       },
     );
+
+    _firebaseCloudMessaging.getToken().then((fcmToken) {
+      debugPrint('FCM Token: $fcmToken');
+    });
 
     super.initState();
   }
